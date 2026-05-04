@@ -1,21 +1,19 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-sans)}
 .screen{display:none;flex-direction:column;align-items:center;padding:2rem 1rem;min-height:400px}
 .screen.active{display:flex}
 .card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.5rem;width:100%;max-width:420px}
 .title{font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:0.25rem}
 .subtitle{font-size:14px;color:var(--color-text-secondary);margin-bottom:1.5rem}
 input{width:100%;padding:10px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:15px;background:var(--color-background-secondary);color:var(--color-text-primary);margin-bottom:10px;outline:none}
-input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(100,100,255,0.1)}
+input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(83,74,183,0.12)}
 .btn{width:100%;padding:11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:15px;font-weight:500;cursor:pointer;background:var(--color-background-secondary);color:var(--color-text-primary);margin-top:4px;transition:background 0.15s}
 .btn:hover{background:var(--color-background-tertiary)}
 .btn.primary{background:#534AB7;color:#fff;border-color:#534AB7}
 .btn.primary:hover{background:#3C3489}
 .btn.ghost{background:transparent;border-color:transparent;color:var(--color-text-secondary);font-size:14px}
 .btn.ghost:hover{color:var(--color-text-primary)}
-.divider{width:100%;border:none;border-top:0.5px solid var(--color-border-tertiary);margin:1rem 0}
 .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
 .metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px}
 .metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
@@ -23,7 +21,7 @@ input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(1
 .progress-wrap{margin-bottom:1rem}
 .progress-header{display:flex;justify-content:space-between;font-size:13px;color:var(--color-text-secondary);margin-bottom:6px}
 .track{height:8px;background:var(--color-background-tertiary);border-radius:99px;overflow:hidden}
-.fill{height:100%;background:#534AB7;border-radius:99px;transition:width 0.4s ease}
+.fill{height:100%;border-radius:99px;transition:width 0.4s ease}
 .status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-size:13px;font-weight:500;margin-bottom:1rem}
 .badge-green{background:#EAF3DE;color:#27500A}
 .badge-red{background:#FCEBEB;color:#791F1F}
@@ -36,22 +34,24 @@ input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(1
 .cp.done .cp-label,.cp.current .cp-label{color:#3C3489}
 .cp-val{font-weight:500;color:var(--color-text-primary)}
 .cp.done .cp-val,.cp.current .cp-val{color:#3C3489}
-.cp-check{font-size:14px;margin-left:6px}
 .add-btn{width:100%;padding:14px;background:#534AB7;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:16px;font-weight:500;cursor:pointer;transition:background 0.15s;margin-bottom:10px}
 .add-btn:hover{background:#3C3489}
 .add-btn:active{transform:scale(0.98)}
 .xp-bar-wrap{margin-bottom:0.75rem}
 .xp-label{display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
 .xp-track{height:5px;background:var(--color-background-tertiary);border-radius:99px;overflow:hidden}
-.xp-fill{height:100%;background:#EF9F27;border-radius:99px;transition:width 0.4s ease}
-.level-row{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
-.level-badge{background:#FAEEDA;color:#633806;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:500}
-.streak{background:#EEEDFE;color:#3C3489;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:500}
+.xp-fill{height:100%;border-radius:99px;transition:width 0.4s ease}
+.level-row{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.level-badge{padding:5px 14px;border-radius:99px;font-size:13px;font-weight:500}
+.streak{background:var(--color-background-secondary);color:var(--color-text-secondary);padding:5px 12px;border-radius:99px;font-size:13px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#26215C;color:#fff;padding:10px 20px;border-radius:99px;font-size:14px;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .logo{font-size:28px;font-weight:500;color:var(--color-text-primary);margin-bottom:0.25rem;letter-spacing:-0.5px}
 .logo span{color:#534AB7}
 .error{color:#A32D2D;font-size:13px;margin-top:-6px;margin-bottom:8px}
+.nivel-steps{display:flex;gap:4px;margin-bottom:1rem}
+.ns{flex:1;padding:6px 4px;border-radius:var(--border-radius-md);text-align:center;font-size:11px;font-weight:500;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);background:var(--color-background-secondary)}
+.ns.ativo{border-width:1.5px}
 </style>
 
 <div id="toast" class="toast"></div>
@@ -100,13 +100,15 @@ input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(1
       <button class="btn ghost" onclick="logout()" style="width:auto;padding:6px 12px;margin:0;font-size:13px">Sair</button>
     </div>
 
+    <div class="nivel-steps" id="nivel-steps"></div>
+
     <div class="level-row">
-      <span class="level-badge" id="d-level">Nível 1</span>
+      <span class="level-badge" id="d-level">Fera</span>
       <span class="streak" id="d-streak">0 vendas hoje</span>
     </div>
 
     <div class="xp-bar-wrap">
-      <div class="xp-label"><span>Experiência</span><span id="d-xp">0 / 100 XP</span></div>
+      <div class="xp-label"><span id="d-xp-desc">Progresso para Prata</span><span id="d-xp">0 / 31</span></div>
       <div class="xp-track"><div class="xp-fill" id="d-xp-fill" style="width:0%"></div></div>
     </div>
 
@@ -116,20 +118,28 @@ input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(1
         <div class="metric-value" id="d-meta">—</div>
       </div>
       <div class="metric">
-        <div class="metric-label">Vendas hoje</div>
+        <div class="metric-label">Vendas no mês</div>
         <div class="metric-value" id="d-total">0</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Dias úteis restantes</div>
+        <div class="metric-value" id="d-du-rest">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Ritmo necessário</div>
+        <div class="metric-value" id="d-ritmo">—</div>
       </div>
     </div>
 
     <div class="progress-wrap">
       <div class="progress-header">
-        <span>Progresso da meta</span>
+        <span>Meta mensal</span>
         <span id="d-pct">0%</span>
       </div>
       <div class="track"><div class="fill" id="d-bar" style="width:0%"></div></div>
     </div>
 
-    <div id="d-status" class="status-badge badge-amber" style="margin-bottom:1rem">Carregando...</div>
+    <div id="d-status" class="status-badge badge-amber">Carregando...</div>
 
     <p style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Checkpoints do mês</p>
     <div class="checkpoints" id="d-checkpoints"></div>
@@ -140,8 +150,61 @@ input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(1
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQDQiHqp0sVlk5vT-0EI9fiZHiPZhFTp6PMnzIF4l_e5iAF/exec";
-let user = null;
+const API="https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQDQiHqp0sVlk5vT-0EI9fiZHiPZhFTp6PMnzIF4l_e5iAF/exec";
+let user=null;
+
+const NIVEIS=[
+  {nome:'Fera',min:0,max:30,cor:'#888780',bg:'#F1EFE8',txt:'#2C2C2A',barCor:'#B4B2A9'},
+  {nome:'Prata',min:31,max:40,cor:'#378ADD',bg:'#E6F1FB',txt:'#0C447C',barCor:'#85B7EB'},
+  {nome:'Ouro',min:41,max:50,cor:'#BA7517',bg:'#FAEEDA',txt:'#412402',barCor:'#EF9F27'},
+  {nome:'Diamante',min:51,max:60,cor:'#534AB7',bg:'#EEEDFE',txt:'#26215C',barCor:'#AFA9EC'},
+  {nome:'Rubi',min:61,max:999,cor:'#A32D2D',bg:'#FCEBEB',txt:'#501313',barCor:'#F09595'},
+];
+
+const FERIADOS_BR=[
+  '01-01','04-18','04-20','04-21','05-01','06-19','09-07','10-12','11-02','11-15','11-20','12-25'
+];
+
+function isFeriado(date){
+  const mm=String(date.getMonth()+1).padStart(2,'0');
+  const dd=String(date.getDate()).padStart(2,'0');
+  return FERIADOS_BR.includes(mm+'-'+dd);
+}
+
+function isDiaUtil(date){
+  const dow=date.getDay();
+  return dow!==0&&dow!==6&&!isFeriado(date);
+}
+
+function diasUteisMes(ano,mes){
+  const dias=[];
+  const total=new Date(ano,mes+1,0).getDate();
+  for(let d=1;d<=total;d++){
+    const dt=new Date(ano,mes,d);
+    if(isDiaUtil(dt)) dias.push(dt);
+  }
+  return dias;
+}
+
+function getNivel(vendas){
+  for(let i=NIVEIS.length-1;i>=0;i--){
+    if(vendas>=NIVEIS[i].min) return i;
+  }
+  return 0;
+}
+
+function calcCheckpoints(meta){
+  const hoje=new Date();
+  const mes=hoje.getMonth(),ano=hoje.getFullYear();
+  const uteis=diasUteisMes(ano,mes);
+  const total=uteis.length;
+  if(!total) return[];
+  const cortes=[0.25,0.5,0.75,1];
+  return cortes.map(p=>{
+    const idx=Math.min(Math.round(p*total)-1,total-1);
+    return{data:uteis[idx],valor:Math.round(meta*p),pct:Math.round(p*100)};
+  });
+}
 
 function go(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -150,8 +213,7 @@ function go(id){
 
 function toast(msg){
   const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.classList.add('show');
+  t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2500);
 }
 
@@ -159,25 +221,20 @@ function formatDate(){
   return new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
 }
 
-function calcCheckpoints(meta){
-  const hoje=new Date();
-  const mes=hoje.getMonth(),ano=hoje.getFullYear();
-  const ultDia=new Date(ano,mes+1,0).getDate();
-  const sextas=[];
-  for(let d=1;d<=ultDia;d++){
-    const dt=new Date(ano,mes,d);
-    if(dt.getDay()===5) sextas.push(dt);
-  }
-  const pesos=[0.3,0.6,0.85,1];
-  return sextas.map((data,i)=>({data,valor:Math.round(meta*(pesos[i]||1))}));
-}
-
-function getLevel(vendas){
-  if(vendas>=100) return{label:'Lendário',xp:100,next:100,pct:100};
-  if(vendas>=50) return{label:'Elite',xp:vendas-50,next:50,pct:Math.round(((vendas-50)/50)*100)};
-  if(vendas>=20) return{label:'Sênior',xp:vendas-20,next:30,pct:Math.round(((vendas-20)/30)*100)};
-  if(vendas>=5) return{label:'Júnior',xp:vendas-5,next:15,pct:Math.round(((vendas-5)/15)*100)};
-  return{label:'Iniciante',xp:vendas,next:5,pct:Math.round((vendas/5)*100)};
+function renderNivelSteps(idxAtual){
+  const wrap=document.getElementById('nivel-steps');
+  wrap.innerHTML='';
+  NIVEIS.forEach((n,i)=>{
+    const el=document.createElement('div');
+    el.className='ns'+(i===idxAtual?' ativo':'');
+    if(i===idxAtual){
+      el.style.background=n.bg;
+      el.style.color=n.txt;
+      el.style.borderColor=n.cor;
+    }
+    el.textContent=n.nome;
+    wrap.appendChild(el);
+  });
 }
 
 function renderDash(vendas){
@@ -186,49 +243,76 @@ function renderDash(vendas){
   document.getElementById('d-data').textContent=formatDate();
   document.getElementById('d-meta').textContent=meta;
   document.getElementById('d-total').textContent=vendas;
-  
+
+  const hoje=new Date();
+  const mes=hoje.getMonth(),ano=hoje.getFullYear();
+  const uteis=diasUteisMes(ano,mes);
+  const duRestantes=uteis.filter(d=>d>hoje).length;
+  document.getElementById('d-du-rest').textContent=duRestantes;
+  const faltam=Math.max(meta-vendas,0);
+  const ritmo=duRestantes>0?Math.ceil(faltam/duRestantes):faltam;
+  document.getElementById('d-ritmo').textContent=duRestantes>0?(ritmo+'/dia'):'—';
+
   const pct=Math.min(Math.round((vendas/meta)*100),100);
   document.getElementById('d-pct').textContent=pct+'%';
-  document.getElementById('d-bar').style.width=pct+'%';
+  const bar=document.getElementById('d-bar');
+  const idxN=getNivel(vendas);
+  const nv=NIVEIS[idxN];
+  bar.style.width=pct+'%';
+  bar.style.background=nv.barCor;
 
-  const faltam=meta-vendas;
-  const st=document.getElementById('d-status');
+  const lvBadge=document.getElementById('d-level');
+  lvBadge.textContent=nv.nome;
+  lvBadge.style.background=nv.bg;
+  lvBadge.style.color=nv.txt;
+  renderNivelSteps(idxN);
+
+  const proxIdx=idxN<NIVEIS.length-1?idxN+1:null;
+  const xpFill=document.getElementById('d-xp-fill');
+  if(proxIdx!==null){
+    const prox=NIVEIS[proxIdx];
+    const base=nv.min;
+    const topo=prox.min;
+    const progresso=vendas-base;
+    const range=topo-base;
+    const xpPct=Math.min(Math.round((progresso/range)*100),100);
+    document.getElementById('d-xp-desc').textContent='Progresso para '+prox.nome;
+    document.getElementById('d-xp').textContent=vendas+' / '+prox.min;
+    xpFill.style.width=xpPct+'%';
+    xpFill.style.background=prox.barCor;
+  } else {
+    document.getElementById('d-xp-desc').textContent='Nível máximo atingido!';
+    document.getElementById('d-xp').textContent=vendas+' vendas';
+    xpFill.style.width='100%';
+    xpFill.style.background=nv.barCor;
+  }
+
   const checkpoints=calcCheckpoints(meta);
-  const hoje=new Date();
   let alvo=0;
   for(const c of checkpoints){if(hoje>=c.data) alvo=c.valor;}
-
+  const st=document.getElementById('d-status');
   if(vendas>=meta){
-    st.textContent='Meta batida!';
-    st.className='status-badge badge-green';
+    st.textContent='Meta batida!';st.className='status-badge badge-green';
   } else if(vendas>=alvo){
-    st.textContent='No ritmo — faltam '+faltam+' vendas';
-    st.className='status-badge badge-green';
+    st.textContent='No ritmo — faltam '+faltam+' vendas';st.className='status-badge badge-green';
   } else {
-    st.textContent='Atrasado — faltam '+faltam+' vendas';
-    st.className='status-badge badge-red';
+    st.textContent='Atrasado — faltam '+faltam+' vendas';st.className='status-badge badge-red';
   }
 
   const cpWrap=document.getElementById('d-checkpoints');
   cpWrap.innerHTML='';
-  for(let i=0;i<checkpoints.length;i++){
-    const c=checkpoints[i];
+  checkpoints.forEach((c,i)=>{
     const passed=hoje>=c.data;
     const isCurrent=!passed&&(i===0||(i>0&&hoje>=checkpoints[i-1].data));
     const done=vendas>=c.valor&&passed;
-    const cl=done?'cp done':(isCurrent?'cp current':'cp');
+    const cl='cp'+(done?' done':(isCurrent?' current':''));
     const dateStr=c.data.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
-    cpWrap.innerHTML+=`<div class="${cl}"><span class="cp-label">Sexta ${dateStr}</span><span style="display:flex;align-items:center"><span class="cp-val">${c.valor} vendas</span><span class="cp-check">${done?'✓':''}</span></span></div>`;
-  }
-
-  const lv=getLevel(vendas);
-  document.getElementById('d-level').textContent='Nível: '+lv.label;
-  document.getElementById('d-xp').textContent=lv.xp+' / '+lv.next+' XP';
-  document.getElementById('d-xp-fill').style.width=lv.pct+'%';
+    cpWrap.innerHTML+=`<div class="${cl}"><span class="cp-label">${c.pct}% — ${dateStr}</span><span style="display:flex;align-items:center;gap:6px"><span class="cp-val">${c.valor} vendas</span>${done?'<span style="font-size:13px">✓</span>':''}</span></div>`;
+  });
 
   const todayKey='vendas_hoje_'+new Date().toDateString();
-  const hoje_count=parseInt(localStorage.getItem(todayKey)||'0');
-  document.getElementById('d-streak').textContent=hoje_count+' vendas hoje';
+  const hj=parseInt(localStorage.getItem(todayKey)||'0');
+  document.getElementById('d-streak').textContent=hj+(hj===1?' venda hoje':' vendas hoje');
 }
 
 async function login(){
@@ -246,7 +330,7 @@ async function login(){
     const d2=await r2.json();
     renderDash(d2.total);
     go('s-dash');
-  }catch(e){err.textContent='Erro de conexão. Tente novamente.';err.style.display='block';}
+  }catch(e){err.textContent='Erro de conexão.';err.style.display='block';}
 }
 
 async function register(){
@@ -258,8 +342,7 @@ async function register(){
   if(!nome||!email||!senha){err.textContent='Preencha todos os campos.';err.style.display='block';return;}
   try{
     await fetch(API,{method:'POST',body:JSON.stringify({action:'register',nome,email,senha})});
-    toast('Conta criada! Faça login.');
-    go('s-login');
+    toast('Conta criada! Faça login.');go('s-login');
   }catch(e){err.textContent='Erro ao criar conta.';err.style.display='block';}
 }
 
