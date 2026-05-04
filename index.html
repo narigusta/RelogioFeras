@@ -1,318 +1,282 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Relógio de Vendas</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #f5f5f5;
-    }
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.screen{display:none;flex-direction:column;align-items:center;padding:2rem 1rem;min-height:400px}
+.screen.active{display:flex}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.5rem;width:100%;max-width:420px}
+.title{font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:0.25rem}
+.subtitle{font-size:14px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+input{width:100%;padding:10px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:15px;background:var(--color-background-secondary);color:var(--color-text-primary);margin-bottom:10px;outline:none}
+input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(100,100,255,0.1)}
+.btn{width:100%;padding:11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:15px;font-weight:500;cursor:pointer;background:var(--color-background-secondary);color:var(--color-text-primary);margin-top:4px;transition:background 0.15s}
+.btn:hover{background:var(--color-background-tertiary)}
+.btn.primary{background:#534AB7;color:#fff;border-color:#534AB7}
+.btn.primary:hover{background:#3C3489}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--color-text-secondary);font-size:14px}
+.btn.ghost:hover{color:var(--color-text-primary)}
+.divider{width:100%;border:none;border-top:0.5px solid var(--color-border-tertiary);margin:1rem 0}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px}
+.metric-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.metric-value{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.progress-wrap{margin-bottom:1rem}
+.progress-header{display:flex;justify-content:space-between;font-size:13px;color:var(--color-text-secondary);margin-bottom:6px}
+.track{height:8px;background:var(--color-background-tertiary);border-radius:99px;overflow:hidden}
+.fill{height:100%;background:#534AB7;border-radius:99px;transition:width 0.4s ease}
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-size:13px;font-weight:500;margin-bottom:1rem}
+.badge-green{background:#EAF3DE;color:#27500A}
+.badge-red{background:#FCEBEB;color:#791F1F}
+.badge-amber{background:#FAEEDA;color:#633806}
+.checkpoints{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
+.cp{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);font-size:13px}
+.cp.done{border-color:#AFA9EC;background:#EEEDFE}
+.cp.current{border-color:#534AB7;background:#EEEDFE}
+.cp-label{color:var(--color-text-secondary)}
+.cp.done .cp-label,.cp.current .cp-label{color:#3C3489}
+.cp-val{font-weight:500;color:var(--color-text-primary)}
+.cp.done .cp-val,.cp.current .cp-val{color:#3C3489}
+.cp-check{font-size:14px;margin-left:6px}
+.add-btn{width:100%;padding:14px;background:#534AB7;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:16px;font-weight:500;cursor:pointer;transition:background 0.15s;margin-bottom:10px}
+.add-btn:hover{background:#3C3489}
+.add-btn:active{transform:scale(0.98)}
+.xp-bar-wrap{margin-bottom:0.75rem}
+.xp-label{display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.xp-track{height:5px;background:var(--color-background-tertiary);border-radius:99px;overflow:hidden}
+.xp-fill{height:100%;background:#EF9F27;border-radius:99px;transition:width 0.4s ease}
+.level-row{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.level-badge{background:#FAEEDA;color:#633806;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:500}
+.streak{background:#EEEDFE;color:#3C3489;padding:4px 12px;border-radius:99px;font-size:13px;font-weight:500}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);background:#26215C;color:#fff;padding:10px 20px;border-radius:99px;font-size:14px;opacity:0;transition:all 0.3s;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.logo{font-size:28px;font-weight:500;color:var(--color-text-primary);margin-bottom:0.25rem;letter-spacing:-0.5px}
+.logo span{color:#534AB7}
+.error{color:#A32D2D;font-size:13px;margin-top:-6px;margin-bottom:8px}
+</style>
 
-    .tela { display: none; }
-    .ativa { display: block; }
+<div id="toast" class="toast"></div>
 
-    .card {
-      background: #fff;
-      padding: 20px;
-      margin: 20px auto;
-      width: 300px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    button {
-      padding: 10px 20px;
-      margin: 10px;
-      cursor: pointer;
-      border: none;
-      border-radius: 5px;
-      background: #007bff;
-      color: white;
-    }
-
-    input {
-      padding: 8px;
-      margin: 5px;
-      width: 80%;
-    }
-
-    /* PROGRESSO */
-    .barra {
-      width: 100%;
-      background: #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-
-    .progresso {
-      height: 20px;
-      background: green;
-      width: 0%;
-      transition: 0.3s;
-    }
-
-    /* LOADING */
-    #loading {
-      display:none;
-      position:fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      background:rgba(0,0,0,0.6);
-      color:#fff;
-      align-items:center;
-      justify-content:center;
-      z-index:9999;
-      flex-direction: column;
-    }
-
-    .spinner {
-      border: 4px solid #fff;
-      border-top: 4px solid transparent;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 10px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  </style>
-</head>
-
-<body>
-
-<!-- INICIO -->
-<div id="telaInicio" class="tela ativa card">
-  <h1>🎯 Relógio de Vendas</h1>
-  <button onclick="irPara('telaLogin')">Login</button>
-  <button onclick="irPara('telaCadastro')">Cadastrar</button>
-</div>
-
-<!-- LOGIN -->
-<div id="telaLogin" class="tela card">
-  <h2>Login</h2>
-  <input id="email" placeholder="Email"><br>
-  <input id="senha" type="password" placeholder="Senha"><br>
-  <button onclick="login()">Entrar</button>
-  <button onclick="irPara('telaInicio')">Voltar</button>
-</div>
-
-<!-- CADASTRO -->
-<div id="telaCadastro" class="tela card">
-  <h2>Cadastro</h2>
-  <input id="nomeCadastro" placeholder="Nome"><br>
-  <input id="emailCadastro" placeholder="Email"><br>
-  <input id="senhaCadastro" placeholder="Senha"><br>
-  <button onclick="register()">Cadastrar</button>
-  <button onclick="irPara('telaInicio')">Voltar</button>
-</div>
-
-<!-- DASHBOARD -->
-<div id="telaDashboard" class="tela card">
-  <h2 id="nome"></h2>
-
-  <p><b>Meta:</b> <span id="meta"></span></p>
-  <p><b>Vendas:</b> <span id="vendas"></span></p>
-
-  <!-- PROGRESSO -->
-  <div class="barra">
-    <div id="barraProgresso" class="progresso"></div>
+<div id="s-inicio" class="screen active">
+  <div class="card" style="text-align:center">
+    <div class="logo">vend<span>ai</span></div>
+    <p class="subtitle" style="margin-bottom:1.5rem">Seu painel gamificado de metas</p>
+    <button class="btn primary" onclick="go('s-login')">Entrar</button>
+    <button class="btn" onclick="go('s-cadastro')" style="margin-top:8px">Criar conta</button>
   </div>
-
-  <p id="faltam"></p>
-  <p id="metaSemana"></p>
-
-  <button onclick="addVenda()">+1 Venda</button>
-
-  <h3 id="status"></h3>
-
-  <button onclick="logout()">Sair</button>
 </div>
 
-<!-- LOADING -->
-<div id="loading">
-  <div class="spinner"></div>
-  <p>Carregando...</p>
+<div id="s-login" class="screen">
+  <div class="card">
+    <p class="title">Entrar</p>
+    <p class="subtitle">Continue de onde parou</p>
+    <input id="l-email" placeholder="Email" type="email">
+    <input id="l-senha" placeholder="Senha" type="password">
+    <div id="l-err" class="error" style="display:none"></div>
+    <button class="btn primary" onclick="login()">Entrar</button>
+    <button class="btn ghost" onclick="go('s-inicio')" style="margin-top:8px">Voltar</button>
+  </div>
+</div>
+
+<div id="s-cadastro" class="screen">
+  <div class="card">
+    <p class="title">Criar conta</p>
+    <p class="subtitle">Comece a acompanhar suas metas</p>
+    <input id="c-nome" placeholder="Seu nome">
+    <input id="c-email" placeholder="Email" type="email">
+    <input id="c-senha" placeholder="Senha" type="password">
+    <div id="c-err" class="error" style="display:none"></div>
+    <button class="btn primary" onclick="register()">Criar conta</button>
+    <button class="btn ghost" onclick="go('s-inicio')" style="margin-top:8px">Voltar</button>
+  </div>
+</div>
+
+<div id="s-dash" class="screen">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div>
+        <p class="title" id="d-nome">Olá!</p>
+        <p style="font-size:13px;color:var(--color-text-secondary)" id="d-data"></p>
+      </div>
+      <button class="btn ghost" onclick="logout()" style="width:auto;padding:6px 12px;margin:0;font-size:13px">Sair</button>
+    </div>
+
+    <div class="level-row">
+      <span class="level-badge" id="d-level">Nível 1</span>
+      <span class="streak" id="d-streak">0 vendas hoje</span>
+    </div>
+
+    <div class="xp-bar-wrap">
+      <div class="xp-label"><span>Experiência</span><span id="d-xp">0 / 100 XP</span></div>
+      <div class="xp-track"><div class="xp-fill" id="d-xp-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="metric-label">Meta mensal</div>
+        <div class="metric-value" id="d-meta">—</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Vendas hoje</div>
+        <div class="metric-value" id="d-total">0</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span>Progresso da meta</span>
+        <span id="d-pct">0%</span>
+      </div>
+      <div class="track"><div class="fill" id="d-bar" style="width:0%"></div></div>
+    </div>
+
+    <div id="d-status" class="status-badge badge-amber" style="margin-bottom:1rem">Carregando...</div>
+
+    <p style="font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px">Checkpoints do mês</p>
+    <div class="checkpoints" id="d-checkpoints"></div>
+
+    <button class="add-btn" id="add-btn" onclick="addVenda()">+ Registrar venda</button>
+    <button class="btn ghost" style="font-size:13px" onclick="sendPrompt('Dicas para bater minha meta de vendas este mês')">Pedir dicas de vendas ↗</button>
+  </div>
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQDQiHqp0sVlk5vT-0EI9fiZHiPZhFTp6PMnzIF4l_e5iAF/exec";
-
+const API = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQDQiHqp0sVlk5vT-0EI9fiZHiPZhFTp6PMnzIF4l_e5iAF/exec";
 let user = null;
 
-// TELAS
-function irPara(id){
-  document.querySelectorAll(".tela").forEach(t => t.classList.remove("ativa"));
-  document.getElementById(id).classList.add("ativa");
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-// LOADING
-function showLoading(){ document.getElementById("loading").style.display="flex"; }
-function hideLoading(){ document.getElementById("loading").style.display="none"; }
-
-// LIMPAR
-function limparDashboard(){
-  document.getElementById("nome").innerText="";
-  document.getElementById("meta").innerText="";
-  document.getElementById("vendas").innerText="";
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-// CADASTRO
-async function register(){
-  showLoading();
-  await fetch(API_URL,{method:"POST",body:JSON.stringify({
-    action:"register",
-    nome: nomeCadastro.value,
-    email: emailCadastro.value,
-    senha: senhaCadastro.value
-  })});
-  hideLoading();
-  alert("Cadastrado!");
-  irPara("telaLogin");
+function formatDate(){
+  return new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
 }
 
-// LOGIN
-async function login(){
-  showLoading();
-
-  const res = await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      action:"login",
-      email: email.value,
-      senha: senha.value
-    })
-  });
-
-  const data = await res.json();
-
-  if(!data.success){
-    hideLoading();
-    alert("Login inválido");
-    return;
-  }
-
-  user = data.user;
-
-  limparDashboard();
-  await carregarDados();
-
-  irPara("telaDashboard");
-  hideLoading();
-}
-
-// LOGOUT
-function logout(){
-  user=null;
-  irPara("telaInicio");
-}
-
-// DADOS
-async function carregarDados(){
-  const res = await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      action:"getUserData",
-      userId:user.id
-    })
-  });
-
-  const data = await res.json();
-
-  document.getElementById("nome").innerText = user.nome;
-  document.getElementById("meta").innerText = user.meta;
-  document.getElementById("vendas").innerText = data.total;
-
-  atualizarGamificacao(data.total, user.meta);
-}
-
-// VENDA
-async function addVenda(){
-  showLoading();
-
-  await fetch(API_URL,{
-    method:"POST",
-    body:JSON.stringify({
-      action:"saveVenda",
-      userId:user.id
-    })
-  });
-
-  await carregarDados();
-
-  hideLoading();
-
-  alert("🔥 Venda registrada!");
-}
-
-// RELÓGIO
-function calcularRelogio(meta){
-  const hoje = new Date();
-  const mes = hoje.getMonth();
-  const ano = hoje.getFullYear();
-
+function calcCheckpoints(meta){
+  const hoje=new Date();
+  const mes=hoje.getMonth(),ano=hoje.getFullYear();
+  const ultDia=new Date(ano,mes+1,0).getDate();
   const sextas=[];
-  const ultimoDia = new Date(ano,mes+1,0).getDate();
-
-  for(let d=1; d<=ultimoDia; d++){
-    const data = new Date(ano,mes,d);
-    if(data.getDay()===5) sextas.push(data);
+  for(let d=1;d<=ultDia;d++){
+    const dt=new Date(ano,mes,d);
+    if(dt.getDay()===5) sextas.push(dt);
   }
-
   const pesos=[0.3,0.6,0.85,1];
-
-  return sextas.map((data,i)=>({
-    data,
-    valor: Math.round(meta*(pesos[i]||1))
-  }));
+  return sextas.map((data,i)=>({data,valor:Math.round(meta*(pesos[i]||1))}));
 }
 
-// GAMIFICAÇÃO
-function atualizarGamificacao(vendas, meta){
-  const faltam = meta - vendas;
+function getLevel(vendas){
+  if(vendas>=100) return{label:'Lendário',xp:100,next:100,pct:100};
+  if(vendas>=50) return{label:'Elite',xp:vendas-50,next:50,pct:Math.round(((vendas-50)/50)*100)};
+  if(vendas>=20) return{label:'Sênior',xp:vendas-20,next:30,pct:Math.round(((vendas-20)/30)*100)};
+  if(vendas>=5) return{label:'Júnior',xp:vendas-5,next:15,pct:Math.round(((vendas-5)/15)*100)};
+  return{label:'Iniciante',xp:vendas,next:5,pct:Math.round((vendas/5)*100)};
+}
 
-  // barra
-  const porcentagem = Math.min((vendas/meta)*100,100);
-  document.getElementById("barraProgresso").style.width = porcentagem + "%";
+function renderDash(vendas){
+  const meta=user.meta;
+  document.getElementById('d-nome').textContent='Olá, '+user.nome.split(' ')[0]+'!';
+  document.getElementById('d-data').textContent=formatDate();
+  document.getElementById('d-meta').textContent=meta;
+  document.getElementById('d-total').textContent=vendas;
+  
+  const pct=Math.min(Math.round((vendas/meta)*100),100);
+  document.getElementById('d-pct').textContent=pct+'%';
+  document.getElementById('d-bar').style.width=pct+'%';
 
-  // faltam
-  document.getElementById("faltam").innerText =
-    faltam > 0 ? `Faltam ${faltam} vendas` : "Meta batida! 🔥";
-
-  // relógio
-  const checkpoints = calcularRelogio(meta);
-  const hoje = new Date();
-
+  const faltam=meta-vendas;
+  const st=document.getElementById('d-status');
+  const checkpoints=calcCheckpoints(meta);
+  const hoje=new Date();
   let alvo=0;
+  for(const c of checkpoints){if(hoje>=c.data) alvo=c.valor;}
 
-  for(let c of checkpoints){
-    if(hoje >= c.data){
-      alvo = c.valor;
-    }
+  if(vendas>=meta){
+    st.textContent='Meta batida!';
+    st.className='status-badge badge-green';
+  } else if(vendas>=alvo){
+    st.textContent='No ritmo — faltam '+faltam+' vendas';
+    st.className='status-badge badge-green';
+  } else {
+    st.textContent='Atrasado — faltam '+faltam+' vendas';
+    st.className='status-badge badge-red';
   }
 
-  document.getElementById("metaSemana").innerText =
-    `Meta até agora: ${alvo}`;
-
-  // status
-  const status = document.getElementById("status");
-
-  if(vendas >= alvo){
-    status.innerText = "🟢 No ritmo";
-    status.style.color = "green";
-  }else{
-    status.innerText = "🔴 Atrasado";
-    status.style.color = "red";
+  const cpWrap=document.getElementById('d-checkpoints');
+  cpWrap.innerHTML='';
+  for(let i=0;i<checkpoints.length;i++){
+    const c=checkpoints[i];
+    const passed=hoje>=c.data;
+    const isCurrent=!passed&&(i===0||(i>0&&hoje>=checkpoints[i-1].data));
+    const done=vendas>=c.valor&&passed;
+    const cl=done?'cp done':(isCurrent?'cp current':'cp');
+    const dateStr=c.data.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
+    cpWrap.innerHTML+=`<div class="${cl}"><span class="cp-label">Sexta ${dateStr}</span><span style="display:flex;align-items:center"><span class="cp-val">${c.valor} vendas</span><span class="cp-check">${done?'✓':''}</span></span></div>`;
   }
+
+  const lv=getLevel(vendas);
+  document.getElementById('d-level').textContent='Nível: '+lv.label;
+  document.getElementById('d-xp').textContent=lv.xp+' / '+lv.next+' XP';
+  document.getElementById('d-xp-fill').style.width=lv.pct+'%';
+
+  const todayKey='vendas_hoje_'+new Date().toDateString();
+  const hoje_count=parseInt(localStorage.getItem(todayKey)||'0');
+  document.getElementById('d-streak').textContent=hoje_count+' vendas hoje';
 }
-</script>
 
-</body>
-</html>
+async function login(){
+  const email=document.getElementById('l-email').value;
+  const senha=document.getElementById('l-senha').value;
+  const err=document.getElementById('l-err');
+  err.style.display='none';
+  if(!email||!senha){err.textContent='Preencha todos os campos.';err.style.display='block';return;}
+  try{
+    const res=await fetch(API,{method:'POST',body:JSON.stringify({action:'login',email,senha})});
+    const data=await res.json();
+    if(!data.success){err.textContent='Email ou senha inválidos.';err.style.display='block';return;}
+    user=data.user;
+    const r2=await fetch(API,{method:'POST',body:JSON.stringify({action:'getUserData',userId:user.id})});
+    const d2=await r2.json();
+    renderDash(d2.total);
+    go('s-dash');
+  }catch(e){err.textContent='Erro de conexão. Tente novamente.';err.style.display='block';}
+}
+
+async function register(){
+  const nome=document.getElementById('c-nome').value;
+  const email=document.getElementById('c-email').value;
+  const senha=document.getElementById('c-senha').value;
+  const err=document.getElementById('c-err');
+  err.style.display='none';
+  if(!nome||!email||!senha){err.textContent='Preencha todos os campos.';err.style.display='block';return;}
+  try{
+    await fetch(API,{method:'POST',body:JSON.stringify({action:'register',nome,email,senha})});
+    toast('Conta criada! Faça login.');
+    go('s-login');
+  }catch(e){err.textContent='Erro ao criar conta.';err.style.display='block';}
+}
+
+async function addVenda(){
+  const btn=document.getElementById('add-btn');
+  btn.disabled=true;btn.textContent='Registrando...';
+  try{
+    await fetch(API,{method:'POST',body:JSON.stringify({action:'saveVenda',userId:user.id})});
+    const r2=await fetch(API,{method:'POST',body:JSON.stringify({action:'getUserData',userId:user.id})});
+    const d2=await r2.json();
+    const todayKey='vendas_hoje_'+new Date().toDateString();
+    localStorage.setItem(todayKey,String(parseInt(localStorage.getItem(todayKey)||'0')+1));
+    renderDash(d2.total);
+    toast('Venda registrada!');
+  }catch(e){toast('Erro ao registrar.');}
+  btn.disabled=false;btn.textContent='+ Registrar venda';
+}
+
+function logout(){user=null;go('s-inicio');}
+</script>
