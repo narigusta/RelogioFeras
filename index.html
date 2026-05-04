@@ -7,20 +7,51 @@
     body {
       font-family: Arial;
       text-align: center;
+      background: #f5f5f5;
     }
 
     .tela { display: none; }
     .ativa { display: block; }
 
+    .card {
+      background: #fff;
+      padding: 20px;
+      margin: 20px auto;
+      width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
     button {
       padding: 10px 20px;
       margin: 10px;
       cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background: #007bff;
+      color: white;
     }
 
     input {
       padding: 8px;
       margin: 5px;
+      width: 80%;
+    }
+
+    /* PROGRESSO */
+    .barra {
+      width: 100%;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progresso {
+      height: 20px;
+      background: green;
+      width: 0%;
+      transition: 0.3s;
     }
 
     /* LOADING */
@@ -57,53 +88,55 @@
 
 <body>
 
-<!-- 🟢 INICIO -->
-<div id="telaInicio" class="tela ativa">
-  <h1>Acompanhe seu relógio</h1>
-
-  <button onclick="irPara('telaLogin')">Fazer Login</button><br>
+<!-- INICIO -->
+<div id="telaInicio" class="tela ativa card">
+  <h1>🎯 Relógio de Vendas</h1>
+  <button onclick="irPara('telaLogin')">Login</button>
   <button onclick="irPara('telaCadastro')">Cadastrar</button>
 </div>
 
-<!-- 🔐 LOGIN -->
-<div id="telaLogin" class="tela">
+<!-- LOGIN -->
+<div id="telaLogin" class="tela card">
   <h2>Login</h2>
-
   <input id="email" placeholder="Email"><br>
   <input id="senha" type="password" placeholder="Senha"><br>
-
-  <button onclick="login()">Entrar</button><br>
+  <button onclick="login()">Entrar</button>
   <button onclick="irPara('telaInicio')">Voltar</button>
 </div>
 
-<!-- 📝 CADASTRO -->
-<div id="telaCadastro" class="tela">
+<!-- CADASTRO -->
+<div id="telaCadastro" class="tela card">
   <h2>Cadastro</h2>
-
   <input id="nomeCadastro" placeholder="Nome"><br>
   <input id="emailCadastro" placeholder="Email"><br>
   <input id="senhaCadastro" placeholder="Senha"><br>
-
-  <button onclick="register()">Cadastrar</button><br>
+  <button onclick="register()">Cadastrar</button>
   <button onclick="irPara('telaInicio')">Voltar</button>
 </div>
 
-<!-- 📊 DASHBOARD -->
-<div id="telaDashboard" class="tela">
+<!-- DASHBOARD -->
+<div id="telaDashboard" class="tela card">
   <h2 id="nome"></h2>
 
-  <p>Meta: <span id="meta"></span></p>
-  <p>Vendas: <span id="vendas"></span></p>
+  <p><b>Meta:</b> <span id="meta"></span></p>
+  <p><b>Vendas:</b> <span id="vendas"></span></p>
+
+  <!-- PROGRESSO -->
+  <div class="barra">
+    <div id="barraProgresso" class="progresso"></div>
+  </div>
+
+  <p id="faltam"></p>
+  <p id="metaSemana"></p>
 
   <button onclick="addVenda()">+1 Venda</button>
 
   <h3 id="status"></h3>
 
-  <br>
   <button onclick="logout()">Sair</button>
 </div>
 
-<!-- ⏳ LOADER -->
+<!-- LOADING -->
 <div id="loading">
   <div class="spinner"></div>
   <p>Carregando...</p>
@@ -114,106 +147,80 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQD
 
 let user = null;
 
-// TROCAR TELA
-function irPara(telaId) {
+// TELAS
+function irPara(id){
   document.querySelectorAll(".tela").forEach(t => t.classList.remove("ativa"));
-  document.getElementById(telaId).classList.add("ativa");
+  document.getElementById(id).classList.add("ativa");
 }
 
-// LOADER
-function showLoading() {
-  document.getElementById("loading").style.display = "flex";
-}
-function hideLoading() {
-  document.getElementById("loading").style.display = "none";
-}
+// LOADING
+function showLoading(){ document.getElementById("loading").style.display="flex"; }
+function hideLoading(){ document.getElementById("loading").style.display="none"; }
 
-// LIMPAR DASHBOARD
-function limparDashboard() {
-  document.getElementById("nome").innerText = "";
-  document.getElementById("meta").innerText = "";
-  document.getElementById("vendas").innerText = "";
-  document.getElementById("status").innerText = "";
+// LIMPAR
+function limparDashboard(){
+  document.getElementById("nome").innerText="";
+  document.getElementById("meta").innerText="";
+  document.getElementById("vendas").innerText="";
 }
 
 // CADASTRO
-async function register() {
+async function register(){
   showLoading();
-
-  const nome = document.getElementById("nomeCadastro").value;
-  const email = document.getElementById("emailCadastro").value;
-  const senha = document.getElementById("senhaCadastro").value;
-
-  try {
-    await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "register",
-        nome, email, senha
-      })
-    });
-
-    alert("Cadastrado com sucesso!");
-    irPara("telaLogin");
-
-  } catch {
-    alert("Erro ao cadastrar");
-  }
-
+  await fetch(API_URL,{method:"POST",body:JSON.stringify({
+    action:"register",
+    nome: nomeCadastro.value,
+    email: emailCadastro.value,
+    senha: senhaCadastro.value
+  })});
   hideLoading();
+  alert("Cadastrado!");
+  irPara("telaLogin");
 }
 
 // LOGIN
-async function login() {
+async function login(){
   showLoading();
 
-  const email = document.getElementById("email").value;
-  const senha = document.getElementById("senha").value;
+  const res = await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"login",
+      email: email.value,
+      senha: senha.value
+    })
+  });
 
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "login",
-        email, senha
-      })
-    });
+  const data = await res.json();
 
-    const data = await res.json();
-
-    if (!data.success) {
-      hideLoading();
-      alert("Login inválido");
-      return;
-    }
-
-    user = data.user;
-
-    limparDashboard();
-    await carregarDados();
-
-    irPara("telaDashboard");
-
-  } catch {
-    alert("Erro de conexão");
+  if(!data.success){
+    hideLoading();
+    alert("Login inválido");
+    return;
   }
 
+  user = data.user;
+
+  limparDashboard();
+  await carregarDados();
+
+  irPara("telaDashboard");
   hideLoading();
 }
 
 // LOGOUT
-function logout() {
-  user = null;
+function logout(){
+  user=null;
   irPara("telaInicio");
 }
 
-// CARREGAR DADOS
-async function carregarDados() {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "getUserData",
-      userId: user.id
+// DADOS
+async function carregarDados(){
+  const res = await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"getUserData",
+      userId:user.id
     })
   });
 
@@ -223,70 +230,85 @@ async function carregarDados() {
   document.getElementById("meta").innerText = user.meta;
   document.getElementById("vendas").innerText = data.total;
 
-  atualizarStatus(data.total, user.meta);
+  atualizarGamificacao(data.total, user.meta);
 }
 
-// ADD VENDA
-async function addVenda() {
+// VENDA
+async function addVenda(){
   showLoading();
 
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "saveVenda",
-      userId: user.id
+  await fetch(API_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      action:"saveVenda",
+      userId:user.id
     })
   });
 
   await carregarDados();
 
   hideLoading();
+
+  alert("🔥 Venda registrada!");
 }
 
 // RELÓGIO
-function calcularRelogio(meta) {
+function calcularRelogio(meta){
   const hoje = new Date();
-  const ano = hoje.getFullYear();
   const mes = hoje.getMonth();
+  const ano = hoje.getFullYear();
 
-  const sextas = [];
-  const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+  const sextas=[];
+  const ultimoDia = new Date(ano,mes+1,0).getDate();
 
-  for (let d = 1; d <= ultimoDia; d++) {
-    const data = new Date(ano, mes, d);
-    if (data.getDay() === 5) {
-      sextas.push(data);
-    }
+  for(let d=1; d<=ultimoDia; d++){
+    const data = new Date(ano,mes,d);
+    if(data.getDay()===5) sextas.push(data);
   }
 
-  const pesos = [0.3, 0.6, 0.85, 1];
+  const pesos=[0.3,0.6,0.85,1];
 
-  return sextas.map((data, i) => ({
+  return sextas.map((data,i)=>({
     data,
-    valor: Math.round(meta * (pesos[i] || 1))
+    valor: Math.round(meta*(pesos[i]||1))
   }));
 }
 
-// STATUS
-function atualizarStatus(vendas, meta) {
-  const hoje = new Date();
+// GAMIFICAÇÃO
+function atualizarGamificacao(vendas, meta){
+  const faltam = meta - vendas;
+
+  // barra
+  const porcentagem = Math.min((vendas/meta)*100,100);
+  document.getElementById("barraProgresso").style.width = porcentagem + "%";
+
+  // faltam
+  document.getElementById("faltam").innerText =
+    faltam > 0 ? `Faltam ${faltam} vendas` : "Meta batida! 🔥";
+
+  // relógio
   const checkpoints = calcularRelogio(meta);
+  const hoje = new Date();
 
-  let alvo = 0;
+  let alvo=0;
 
-  for (let c of checkpoints) {
-    if (hoje >= c.data) {
+  for(let c of checkpoints){
+    if(hoje >= c.data){
       alvo = c.valor;
     }
   }
 
+  document.getElementById("metaSemana").innerText =
+    `Meta até agora: ${alvo}`;
+
+  // status
   const status = document.getElementById("status");
 
-  if (vendas >= alvo) {
-    status.innerText = "🟢 No relógio";
+  if(vendas >= alvo){
+    status.innerText = "🟢 No ritmo";
     status.style.color = "green";
-  } else {
-    status.innerText = "🔴 Fora do relógio";
+  }else{
+    status.innerText = "🔴 Atrasado";
     status.style.color = "red";
   }
 }
