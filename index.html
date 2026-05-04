@@ -1,10 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dashboard Vendas</title>
+  <title>Relógio de Vendas</title>
 
   <style>
-    body { font-family: Arial; text-align: center; }
+    body {
+      font-family: Arial;
+      text-align: center;
+    }
+
+    .tela {
+      display: none;
+    }
+
+    .ativa {
+      display: block;
+    }
 
     button {
       padding: 10px 20px;
@@ -12,7 +23,10 @@
       cursor: pointer;
     }
 
-    #dashboard { display: none; }
+    input {
+      padding: 8px;
+      margin: 5px;
+    }
 
     /* LOADER */
     #loading {
@@ -48,29 +62,50 @@
 
 <body>
 
-<h2>Login</h2>
-<input id="email" placeholder="Email"><br><br>
-<input id="senha" type="password" placeholder="Senha"><br><br>
-<button onclick="login()">Entrar</button>
+<!-- 🟢 TELA INICIAL -->
+<div id="telaInicio" class="tela ativa">
+  <h1>Acompanhe seu relógio</h1>
 
-<hr>
+  <button onclick="irPara('telaLogin')">Fazer Login</button><br>
+  <button onclick="irPara('telaCadastro')">Cadastrar</button>
+</div>
 
-<h2>Cadastro</h2>
-<input id="nomeCadastro" placeholder="Nome"><br><br>
-<input id="emailCadastro" placeholder="Email"><br><br>
-<input id="senhaCadastro" placeholder="Senha"><br><br>
-<button onclick="register()">Cadastrar</button>
+<!-- 🔐 LOGIN -->
+<div id="telaLogin" class="tela">
+  <h2>Login</h2>
 
-<hr>
+  <input id="email" placeholder="Email"><br>
+  <input id="senha" type="password" placeholder="Senha"><br>
 
-<div id="dashboard">
+  <button onclick="login()">Entrar</button><br>
+  <button onclick="irPara('telaInicio')">Voltar</button>
+</div>
+
+<!-- 📝 CADASTRO -->
+<div id="telaCadastro" class="tela">
+  <h2>Cadastro</h2>
+
+  <input id="nomeCadastro" placeholder="Nome"><br>
+  <input id="emailCadastro" placeholder="Email"><br>
+  <input id="senhaCadastro" placeholder="Senha"><br>
+
+  <button onclick="register()">Cadastrar</button><br>
+  <button onclick="irPara('telaInicio')">Voltar</button>
+</div>
+
+<!-- 📊 DASHBOARD -->
+<div id="telaDashboard" class="tela">
   <h2 id="nome"></h2>
+
   <p>Meta: <span id="meta"></span></p>
   <p>Vendas: <span id="vendas"></span></p>
 
   <button onclick="addVenda()">+1 Venda</button>
 
   <h3 id="status"></h3>
+
+  <br>
+  <button onclick="logout()">Sair</button>
 </div>
 
 <!-- LOADING -->
@@ -83,6 +118,12 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQDQiHqp0sVlk5vT-0EI9fiZHiPZhFTp6PMnzIF4l_e5iAF/exec";
 
 let user = null;
+
+// 🔄 TROCAR TELA
+function irPara(telaId) {
+  document.querySelectorAll(".tela").forEach(t => t.classList.remove("ativa"));
+  document.getElementById(telaId).classList.add("ativa");
+}
 
 // LOADER
 function showLoading() {
@@ -108,8 +149,9 @@ async function register() {
     })
   });
 
-  alert("Cadastrado!");
   hideLoading();
+  alert("Cadastrado com sucesso!");
+  irPara("telaLogin");
 }
 
 // LOGIN
@@ -129,15 +171,21 @@ async function login() {
 
   const data = await res.json();
 
+  hideLoading();
+
   if (data.success) {
     user = data.user;
-    document.getElementById("dashboard").style.display = "block";
+    irPara("telaDashboard");
     carregarDados();
   } else {
-    alert("Erro no login");
+    alert("Login inválido");
   }
+}
 
-  hideLoading();
+// LOGOUT
+function logout() {
+  user = null;
+  irPara("telaInicio");
 }
 
 // CARREGAR DADOS
