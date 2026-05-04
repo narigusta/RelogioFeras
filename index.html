@@ -1,107 +1,160 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<style>
-body{font-family:Arial;text-align:center;padding:30px}
-button{padding:10px 20px;margin:10px}
-</style>
+  <title>Dashboard Vendas</title>
 </head>
 <body>
 
-<h2>Relógio dos Feras</h2>
+<h2>Login</h2>
 
-<div id="inicio">
-  <button onclick="primeiraVez()">Primeira vez</button>
-  <button onclick="jaTenho()">Já tenho cadastro</button>
-</div>
+<input id="email" placeholder="Email"><br><br>
+<input id="senha" placeholder="Senha" type="password"><br><br>
 
-<div id="cadastro" style="display:none">
-  <h3>Cadastro</h3>
-  <input id="email1" placeholder="Email"><br>
-  <select id="meta">
-    <option value="22">22</option>
-    <option value="31">31</option>
-    <option value="41">41</option>
-  </select><br>
-  <button onclick="cadastrar()">Cadastrar</button>
-</div>
+<button onclick="login()">Entrar</button>
 
-<div id="login" style="display:none">
-  <h3>Entrar</h3>
-  <input id="email2" placeholder="Email"><br>
-  <button onclick="entrar()">Entrar</button>
-</div>
+<hr>
 
-<div id="painel" style="display:none">
-  <h3 id="info"></h3>
-  <input id="add" type="number" placeholder="+ vendas">
-  <button onclick="salvar()">Salvar</button>
+<h2>Cadastro</h2>
+
+<input id="nomeCadastro" placeholder="Nome"><br><br>
+<input id="emailCadastro" placeholder="Email"><br><br>
+<input id="senhaCadastro" placeholder="Senha"><br><br>
+
+<button onclick="register()">Cadastrar</button>
+
+<hr>
+
+<div id="dashboard" style="display:none;">
+  <h2 id="nome"></h2>
+  <p>Meta: <span id="meta"></span></p>
+  <p>Vendas: <span id="vendas"></span></p>
+
+  <button onclick="addVenda()">+1 Venda</button>
+
+  <h3 id="status"></h3>
 </div>
 
 <script>
-let emailGlobal = "";
-let vendasAtual = 0;
-let metaAtual = 0;
+const API_URL = "https://script.google.com/macros/library/d/1pswBQFf9uThhC8CTPhdYpiYfWxJyDKGBNPOfdsU4nXgUTWCU4tF01JA7/3";
 
-function primeiraVez(){
-  document.getElementById("inicio").style.display="none";
-  document.getElementById("cadastro").style.display="block";
-}
+let user = null;
 
-function jaTenho(){
-  document.getElementById("inicio").style.display="none";
-  document.getElementById("login").style.display="block";
-}
+async function register() {
+  const nome = document.getElementById("nomeCadastro").value;
+  const email = document.getElementById("emailCadastro").value;
+  const senha = document.getElementById("senhaCadastro").value;
 
-function cadastrar(){
-  const email = document.getElementById("email1").value;
-  const meta = document.getElementById("meta").value;
-
-  google.script.run.criarUsuario(email, meta, function(res){
-    emailGlobal = email;
-    vendasAtual = 0;
-    metaAtual = meta;
-    mostrarPainel();
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "register",
+      nome, email, senha
+    })
   });
+
+  alert("Cadastrado!");
 }
 
-function entrar(){
-  const email = document.getElementById("email2").value;
+async function login() {
+  const email = document.getElementById("email").value;
+  const senha = document.getElementById("senha").value;
 
-  google.script.run.buscarUsuario(email, function(res){
-    if(!res){
-      alert("Email não encontrado");
-      return;
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "login",
+      email, senha
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    user = data.user;
+    document.getElementById("dashboard").style.display = "block";
+    carregarDados();
+  } else {
+    alert("Erro no login");
+  }
+}
+
+async function carregarDados() {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "getUserData",
+      userId: user.id
+    })
+  });
+
+  const data = await res.json();
+
+  document.getElementById("nome").innerText = user.nome;
+  document.getElementById("meta").innerText = user.meta;
+  document.getElementById("vendas").innerText = data.total;
+
+  atualizarStatus(data.total, user.meta);
+}
+
+async function addVenda() {
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "saveVenda",
+      userId: user.id
+    })
+  });
+
+  carregarDados();
+}
+
+// 🔥 RELÓGIO AUTOMÁTICO
+function calcularRelogio(meta) {
+  const hoje = new Date();
+  const ano = hoje.getFullYear();
+  const mes = hoje.getMonth();
+
+  const sextas = [];
+  const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+
+  for (let d = 1; d <= ultimoDia; d++) {
+    const data = new Date(ano, mes, d);
+    const diaSemana = data.getDay();
+
+    if (diaSemana === 5) {
+      sextas.push(data);
     }
+  }
 
-    emailGlobal = email;
-    vendasAtual = res.vendas;
-    metaAtual = res.meta;
+  const pesos = [0.3, 0.6, 0.85, 1];
 
-    mostrarPainel();
-  });
+  return sextas.map((data, i) => ({
+    data,
+    valor: Math.round(meta * (pesos[i] || 1))
+  }));
 }
 
-function salvar(){
-  const add = Number(document.getElementById("add").value);
+function atualizarStatus(vendas, meta) {
+  const hoje = new Date();
+  const checkpoints = calcularRelogio(meta);
 
-  google.script.run.addVenda(emailGlobal, add, function(novo){
-    vendasAtual = novo;
-    atualizar();
-  });
-}
+  let alvo = 0;
 
-function mostrarPainel(){
-  document.getElementById("cadastro").style.display="none";
-  document.getElementById("login").style.display="none";
-  document.getElementById("painel").style.display="block";
-  atualizar();
-}
+  for (let c of checkpoints) {
+    if (hoje >= c.data) {
+      alvo = c.valor;
+    }
+  }
 
-function atualizar(){
-  document.getElementById("info").innerText =
-    vendasAtual + "/" + metaAtual;
+  const status = document.getElementById("status");
+
+  if (vendas >= alvo) {
+    status.innerText = "🟢 No relógio";
+    status.style.color = "green";
+  } else {
+    status.innerText = "🔴 Fora do relógio";
+    status.style.color = "red";
+  }
 }
 </script>
 
