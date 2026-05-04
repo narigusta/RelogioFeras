@@ -32,7 +32,7 @@ input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(8
 .cp.current{border-color:#534AB7;background:#EEEDFE}
 .cp-label{color:var(--color-text-secondary)}
 .cp.done .cp-label,.cp.current .cp-label{color:#3C3489}
-.cp-val{font-weight:500;color:var(--color-text-primary)}
+.cp-val{font-weight:500}
 .cp.done .cp-val,.cp.current .cp-val{color:#3C3489}
 .add-btn{width:100%;padding:14px;background:#534AB7;color:#fff;border:none;border-radius:var(--border-radius-md);font-size:16px;font-weight:500;cursor:pointer;transition:background 0.15s;margin-bottom:10px}
 .add-btn:hover{background:#3C3489}
@@ -132,10 +132,7 @@ input:focus{border-color:var(--color-border-primary);box-shadow:0 0 0 2px rgba(8
     </div>
 
     <div class="progress-wrap">
-      <div class="progress-header">
-        <span>Meta mensal</span>
-        <span id="d-pct">0%</span>
-      </div>
+      <div class="progress-header"><span>Meta mensal</span><span id="d-pct">0%</span></div>
       <div class="track"><div class="fill" id="d-bar" style="width:0%"></div></div>
     </div>
 
@@ -161,9 +158,10 @@ const NIVEIS=[
   {nome:'Rubi',min:61,max:999,cor:'#A32D2D',bg:'#FCEBEB',txt:'#501313',barCor:'#F09595'},
 ];
 
-const FERIADOS_BR=[
-  '01-01','04-18','04-20','04-21','05-01','06-19','09-07','10-12','11-02','11-15','11-20','12-25'
-];
+const FERIADOS_BR=['01-01','04-18','04-20','04-21','05-01','06-19','09-07','10-12','11-02','11-15','11-20','12-25'];
+
+// Normaliza qualquer Date para meia-noite local, para comparações seguras de dia
+function d0(date){return new Date(date.getFullYear(),date.getMonth(),date.getDate());}
 
 function isFeriado(date){
   const mm=String(date.getMonth()+1).padStart(2,'0');
@@ -186,10 +184,8 @@ function diasUteisMes(ano,mes){
   return dias;
 }
 
-function getNivel(vendas){
-  for(let i=NIVEIS.length-1;i>=0;i--){
-    if(vendas>=NIVEIS[i].min) return i;
-  }
+function getNivelIdx(vendas){
+  for(let i=NIVEIS.length-1;i>=0;i--){if(vendas>=NIVEIS[i].min) return i;}
   return 0;
 }
 
@@ -217,21 +213,13 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('show'),2500);
 }
 
-function formatDate(){
-  return new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
-}
-
 function renderNivelSteps(idxAtual){
   const wrap=document.getElementById('nivel-steps');
   wrap.innerHTML='';
   NIVEIS.forEach((n,i)=>{
     const el=document.createElement('div');
     el.className='ns'+(i===idxAtual?' ativo':'');
-    if(i===idxAtual){
-      el.style.background=n.bg;
-      el.style.color=n.txt;
-      el.style.borderColor=n.cor;
-    }
+    if(i===idxAtual){el.style.background=n.bg;el.style.color=n.txt;el.style.borderColor=n.cor;}
     el.textContent=n.nome;
     wrap.appendChild(el);
   });
@@ -240,24 +228,26 @@ function renderNivelSteps(idxAtual){
 function renderDash(vendas){
   const meta=user.meta;
   document.getElementById('d-nome').textContent='Olá, '+user.nome.split(' ')[0]+'!';
-  document.getElementById('d-data').textContent=formatDate();
+  document.getElementById('d-data').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
   document.getElementById('d-meta').textContent=meta;
   document.getElementById('d-total').textContent=vendas;
 
   const hoje=new Date();
+  const hojeD0=d0(hoje); // meia-noite de hoje para comparações
   const mes=hoje.getMonth(),ano=hoje.getFullYear();
   const uteis=diasUteisMes(ano,mes);
-  const duRestantes=uteis.filter(d=>d>hoje).length;
+
+  // Dias úteis restantes = dias úteis com data > hoje (não conta hoje)
+  const duRestantes=uteis.filter(d=>d0(d)>hojeD0).length;
   document.getElementById('d-du-rest').textContent=duRestantes;
   const faltam=Math.max(meta-vendas,0);
-  const ritmo=duRestantes>0?Math.ceil(faltam/duRestantes):faltam;
-  document.getElementById('d-ritmo').textContent=duRestantes>0?(ritmo+'/dia'):'—';
+  document.getElementById('d-ritmo').textContent=duRestantes>0?(Math.ceil(faltam/duRestantes)+'/dia'):'—';
 
   const pct=Math.min(Math.round((vendas/meta)*100),100);
   document.getElementById('d-pct').textContent=pct+'%';
-  const bar=document.getElementById('d-bar');
-  const idxN=getNivel(vendas);
+  const idxN=getNivelIdx(vendas);
   const nv=NIVEIS[idxN];
+  const bar=document.getElementById('d-bar');
   bar.style.width=pct+'%';
   bar.style.background=nv.barCor;
 
@@ -271,11 +261,9 @@ function renderDash(vendas){
   const xpFill=document.getElementById('d-xp-fill');
   if(proxIdx!==null){
     const prox=NIVEIS[proxIdx];
-    const base=nv.min;
-    const topo=prox.min;
-    const progresso=vendas-base;
-    const range=topo-base;
-    const xpPct=Math.min(Math.round((progresso/range)*100),100);
+    const range=prox.min-nv.min;
+    const prog=vendas-nv.min;
+    const xpPct=Math.min(Math.round((prog/range)*100),100);
     document.getElementById('d-xp-desc').textContent='Progresso para '+prox.nome;
     document.getElementById('d-xp').textContent=vendas+' / '+prox.min;
     xpFill.style.width=xpPct+'%';
@@ -287,9 +275,13 @@ function renderDash(vendas){
     xpFill.style.background=nv.barCor;
   }
 
+  // Checkpoints: passado = data do checkpoint <= hoje (mesmo dia conta)
   const checkpoints=calcCheckpoints(meta);
   let alvo=0;
-  for(const c of checkpoints){if(hoje>=c.data) alvo=c.valor;}
+  for(const c of checkpoints){
+    if(d0(c.data)<=hojeD0) alvo=c.valor;
+  }
+
   const st=document.getElementById('d-status');
   if(vendas>=meta){
     st.textContent='Meta batida!';st.className='status-badge badge-green';
@@ -302,12 +294,28 @@ function renderDash(vendas){
   const cpWrap=document.getElementById('d-checkpoints');
   cpWrap.innerHTML='';
   checkpoints.forEach((c,i)=>{
-    const passed=hoje>=c.data;
-    const isCurrent=!passed&&(i===0||(i>0&&hoje>=checkpoints[i-1].data));
-    const done=vendas>=c.valor&&passed;
-    const cl='cp'+(done?' done':(isCurrent?' current':''));
+    const cpD0=d0(c.data);
+    const passou=cpD0<=hojeD0;      // checkpoint já chegou (inclui hoje)
+    const ehHoje=cpD0.getTime()===hojeD0.getTime();
+    // "current" = próximo checkpoint ainda não chegou
+    const anterior=i>0?d0(checkpoints[i-1].data):null;
+    const isCurrent=!passou&&(i===0||(anterior&&anterior<=hojeD0));
+    const done=passou&&vendas>=c.valor;
+    const atrasado=passou&&vendas<c.valor;
+    let cl='cp';
+    if(done) cl='cp done';
+    else if(isCurrent||ehHoje) cl='cp current';
+
     const dateStr=c.data.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
-    cpWrap.innerHTML+=`<div class="${cl}"><span class="cp-label">${c.pct}% — ${dateStr}</span><span style="display:flex;align-items:center;gap:6px"><span class="cp-val">${c.valor} vendas</span>${done?'<span style="font-size:13px">✓</span>':''}</span></div>`;
+    const extra=ehHoje?' (hoje)':'';
+    cpWrap.innerHTML+=`<div class="${cl}">
+      <span class="cp-label">${c.pct}% — ${dateStr}${extra}</span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="cp-val">${c.valor} vendas</span>
+        ${done?'<span style="font-size:13px;color:#27500A">✓</span>':''}
+        ${atrasado?'<span style="font-size:11px;color:#A32D2D;font-weight:500">atrasado</span>':''}
+      </span>
+    </div>`;
   });
 
   const todayKey='vendas_hoje_'+new Date().toDateString();
