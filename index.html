@@ -2,103 +2,106 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Relógio PRO</title>
 <style>
-body{font-family:Arial;background:#0f172a;color:#fff;text-align:center}
-input,select{padding:10px;margin:5px}
-button{padding:10px 20px;background:#22c55e;border:none;color:#fff}
-.clock{width:220px;height:220px;border-radius:50%;margin:20px auto;background:conic-gradient(#22c55e var(--p),#1e293b 0)}
+body{font-family:Arial;text-align:center;padding:30px}
+button{padding:10px 20px;margin:10px}
 </style>
 </head>
 <body>
 
-<h2>Relógio dos Feras PRO</h2>
+<h2>Relógio dos Feras</h2>
 
-<div id="login">
-<input id="email" placeholder="Seu email"><br>
-<select id="meta">
-<option value="22">Meta 22</option>
-<option value="31">Feras 31</option>
-<option value="41">Feras 41</option>
-</select><br>
-<button onclick="entrar()">Entrar</button>
-<p>Lembrete: não é possível alterar a meta depois.</p>
+<div id="inicio">
+  <button onclick="primeiraVez()">Primeira vez</button>
+  <button onclick="jaTenho()">Já tenho cadastro</button>
 </div>
 
-<div id="app" style="display:none">
-<div class="clock" id="clock"></div>
-<div id="info"></div>
+<div id="cadastro" style="display:none">
+  <h3>Cadastro</h3>
+  <input id="email1" placeholder="Email"><br>
+  <select id="meta">
+    <option value="22">22</option>
+    <option value="31">31</option>
+    <option value="41">41</option>
+  </select><br>
+  <button onclick="cadastrar()">Cadastrar</button>
+</div>
 
-<input id="add" type="number" placeholder="Vendas">
-<button onclick="salvar()">Salvar</button>
+<div id="login" style="display:none">
+  <h3>Entrar</h3>
+  <input id="email2" placeholder="Email"><br>
+  <button onclick="entrar()">Entrar</button>
+</div>
 
-<h3>Ranking</h3>
-<ul id="ranking"></ul>
+<div id="painel" style="display:none">
+  <h3 id="info"></h3>
+  <input id="add" type="number" placeholder="+ vendas">
+  <button onclick="salvar()">Salvar</button>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQDQiHqp0sVlk5vT-0EI9fiZHiPZhFTp6PMnzIF4l_e5iAF/exec";
+let emailGlobal = "";
 let vendasAtual = 0;
 let metaAtual = 0;
-let emailGlobal = "";
 
-function entrar(){
-  const email = document.getElementById("email").value;
+function primeiraVez(){
+  document.getElementById("inicio").style.display="none";
+  document.getElementById("cadastro").style.display="block";
+}
+
+function jaTenho(){
+  document.getElementById("inicio").style.display="none";
+  document.getElementById("login").style.display="block";
+}
+
+function cadastrar(){
+  const email = document.getElementById("email1").value;
   const meta = document.getElementById("meta").value;
 
-  emailGlobal = email;
+  google.script.run.criarUsuario(email, meta, function(res){
+    emailGlobal = email;
+    vendasAtual = 0;
+    metaAtual = meta;
+    mostrarPainel();
+  });
+}
 
-  fetch(API + "?email=" + email)
-  .then(r=>r.json())
-  .then(data=>{
-    if(data.user){
-      vendasAtual = data.user.vendas;
-      metaAtual = data.user.meta;
-    } else {
-      metaAtual = meta;
-      fetch(API,{method:"POST",body:JSON.stringify({email,meta,vendas:0})});
+function entrar(){
+  const email = document.getElementById("email2").value;
+
+  google.script.run.buscarUsuario(email, function(res){
+    if(!res){
+      alert("Email não encontrado");
+      return;
     }
 
-    atualizar(data.ranking || []);
+    emailGlobal = email;
+    vendasAtual = res.vendas;
+    metaAtual = res.meta;
 
-    document.getElementById("login").style.display="none";
-    document.getElementById("app").style.display="block";
+    mostrarPainel();
   });
 }
 
 function salvar(){
   const add = Number(document.getElementById("add").value);
 
-  fetch(API,{method:"POST",body:JSON.stringify({email:emailGlobal,vendas:add})})
-  .then(()=>{
-    vendasAtual += add;
-    recarregar();
+  google.script.run.addVenda(emailGlobal, add, function(novo){
+    vendasAtual = novo;
+    atualizar();
   });
 }
 
-function recarregar(){
-  fetch(API + "?email=" + emailGlobal)
-  .then(r=>r.json())
-  .then(data=>{
-    vendasAtual = data.user.vendas;
-    atualizar(data.ranking);
-  });
+function mostrarPainel(){
+  document.getElementById("cadastro").style.display="none";
+  document.getElementById("login").style.display="none";
+  document.getElementById("painel").style.display="block";
+  atualizar();
 }
 
-function atualizar(ranking){
-  const percent = Math.min((vendasAtual/metaAtual)*100,100);
-  document.getElementById("clock").style.setProperty("--p", percent+"%");
-
-  document.getElementById("info").innerText = `${vendasAtual}/${metaAtual}`;
-
-  const ul = document.getElementById("ranking");
-  ul.innerHTML = "";
-
-  ranking.forEach((r,i)=>{
-    const li = document.createElement("li");
-    li.innerText = `${i+1}º - ${r.email} (${r.vendas})`;
-    ul.appendChild(li);
-  });
+function atualizar(){
+  document.getElementById("info").innerText =
+    vendasAtual + "/" + metaAtual;
 }
 </script>
 
