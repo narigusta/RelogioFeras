@@ -9,13 +9,8 @@
       text-align: center;
     }
 
-    .tela {
-      display: none;
-    }
-
-    .ativa {
-      display: block;
-    }
+    .tela { display: none; }
+    .ativa { display: block; }
 
     button {
       padding: 10px 20px;
@@ -28,7 +23,7 @@
       margin: 5px;
     }
 
-    /* LOADER */
+    /* LOADING */
     #loading {
       display:none;
       position:fixed;
@@ -62,7 +57,7 @@
 
 <body>
 
-<!-- 🟢 TELA INICIAL -->
+<!-- 🟢 INICIO -->
 <div id="telaInicio" class="tela ativa">
   <h1>Acompanhe seu relógio</h1>
 
@@ -108,7 +103,7 @@
   <button onclick="logout()">Sair</button>
 </div>
 
-<!-- LOADING -->
+<!-- ⏳ LOADER -->
 <div id="loading">
   <div class="spinner"></div>
   <p>Carregando...</p>
@@ -125,7 +120,7 @@ function irPara(telaId) {
   document.getElementById(telaId).classList.add("ativa");
 }
 
-// LOADER
+// ⏳ LOADER
 function showLoading() {
   document.getElementById("loading").style.display = "flex";
 }
@@ -133,7 +128,15 @@ function hideLoading() {
   document.getElementById("loading").style.display = "none";
 }
 
-// CADASTRO
+// 🧹 LIMPAR DASHBOARD
+function limparDashboard() {
+  document.getElementById("nome").innerText = "";
+  document.getElementById("meta").innerText = "";
+  document.getElementById("vendas").innerText = "";
+  document.getElementById("status").innerText = "";
+}
+
+// 📝 CADASTRO
 async function register() {
   showLoading();
 
@@ -141,54 +144,74 @@ async function register() {
   const email = document.getElementById("emailCadastro").value;
   const senha = document.getElementById("senhaCadastro").value;
 
-  await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "register",
-      nome, email, senha
-    })
-  });
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "register",
+        nome, email, senha
+      })
+    });
+
+    alert("Cadastrado com sucesso!");
+    irPara("telaLogin");
+
+  } catch {
+    alert("Erro ao cadastrar");
+  }
 
   hideLoading();
-  alert("Cadastrado com sucesso!");
-  irPara("telaLogin");
 }
 
-// LOGIN
+// 🔐 LOGIN (CORRIGIDO)
 async function login() {
   showLoading();
 
   const email = document.getElementById("email").value;
   const senha = document.getElementById("senha").value;
 
-  const res = await fetch(API_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "login",
-      email, senha
-    })
-  });
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "login",
+        email, senha
+      })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
+
+    if (!data.success) {
+      hideLoading();
+      alert("Login inválido");
+      return;
+    }
+
+    user = data.user;
+
+    // 🔥 limpa antes
+    limparDashboard();
+
+    // 🔥 carrega dados antes de trocar tela
+    await carregarDados();
+
+    // 👉 só agora troca
+    irPara("telaDashboard");
+
+  } catch {
+    alert("Erro de conexão");
+  }
 
   hideLoading();
-
-  if (data.success) {
-    user = data.user;
-    irPara("telaDashboard");
-    carregarDados();
-  } else {
-    alert("Login inválido");
-  }
 }
 
-// LOGOUT
+// 🚪 LOGOUT
 function logout() {
   user = null;
   irPara("telaInicio");
 }
 
-// CARREGAR DADOS
+// 📊 CARREGAR DADOS
 async function carregarDados() {
   const res = await fetch(API_URL, {
     method: "POST",
@@ -207,7 +230,7 @@ async function carregarDados() {
   atualizarStatus(data.total, user.meta);
 }
 
-// ADD VENDA
+// ➕ ADD VENDA
 async function addVenda() {
   showLoading();
 
@@ -220,10 +243,11 @@ async function addVenda() {
   });
 
   await carregarDados();
+
   hideLoading();
 }
 
-// RELÓGIO AUTOMÁTICO
+// 🧠 RELÓGIO AUTOMÁTICO
 function calcularRelogio(meta) {
   const hoje = new Date();
   const ano = hoje.getFullYear();
@@ -247,6 +271,7 @@ function calcularRelogio(meta) {
   }));
 }
 
+// 🚦 STATUS
 function atualizarStatus(vendas, meta) {
   const hoje = new Date();
   const checkpoints = calcularRelogio(meta);
