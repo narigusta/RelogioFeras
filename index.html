@@ -114,13 +114,13 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQD
 
 let user = null;
 
-// 🔄 TROCAR TELA
+// TROCAR TELA
 function irPara(telaId) {
   document.querySelectorAll(".tela").forEach(t => t.classList.remove("ativa"));
   document.getElementById(telaId).classList.add("ativa");
 }
 
-// ⏳ LOADER
+// LOADER
 function showLoading() {
   document.getElementById("loading").style.display = "flex";
 }
@@ -128,7 +128,7 @@ function hideLoading() {
   document.getElementById("loading").style.display = "none";
 }
 
-// 🧹 LIMPAR DASHBOARD
+// LIMPAR DASHBOARD
 function limparDashboard() {
   document.getElementById("nome").innerText = "";
   document.getElementById("meta").innerText = "";
@@ -136,7 +136,7 @@ function limparDashboard() {
   document.getElementById("status").innerText = "";
 }
 
-// 📝 CADASTRO
+// CADASTRO
 async function register() {
   showLoading();
 
@@ -163,7 +163,7 @@ async function register() {
   hideLoading();
 }
 
-// 🔐 LOGIN (CORRIGIDO)
+// LOGIN
 async function login() {
   showLoading();
 
@@ -189,13 +189,9 @@ async function login() {
 
     user = data.user;
 
-    // 🔥 limpa antes
     limparDashboard();
-
-    // 🔥 carrega dados antes de trocar tela
     await carregarDados();
 
-    // 👉 só agora troca
     irPara("telaDashboard");
 
   } catch {
@@ -205,13 +201,13 @@ async function login() {
   hideLoading();
 }
 
-// 🚪 LOGOUT
+// LOGOUT
 function logout() {
   user = null;
   irPara("telaInicio");
 }
 
-// 📊 CARREGAR DADOS
+// CARREGAR DADOS
 async function carregarDados() {
   const res = await fetch(API_URL, {
     method: "POST",
@@ -230,7 +226,7 @@ async function carregarDados() {
   atualizarStatus(data.total, user.meta);
 }
 
-// ➕ ADD VENDA
+// ADD VENDA
 async function addVenda() {
   showLoading();
 
@@ -247,7 +243,7 @@ async function addVenda() {
   hideLoading();
 }
 
-// 🧠 RELÓGIO AUTOMÁTICO
+// RELÓGIO
 function calcularRelogio(meta) {
   const hoje = new Date();
   const ano = hoje.getFullYear();
@@ -271,7 +267,7 @@ function calcularRelogio(meta) {
   }));
 }
 
-// 🚦 STATUS
+// STATUS
 function atualizarStatus(vendas, meta) {
   const hoje = new Date();
   const checkpoints = calcularRelogio(meta);
