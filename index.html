@@ -966,46 +966,622 @@ const TEMAS = {
     label: 'Sem cor'
   },
   prata: {
-    bg: '#f1f3f6', surface: '#ffffff', surface2: '#f6f7fa', surface3: '#e8eaee',
-    border: 'rgba(71,85,105,0.1)', border2: 'rgba(71,85,105,0.18)',
-    text: '#1e293b', muted: '#64748b',
-    accent: '#64748b', accent2: '#475569',
+    bg: '#e8edf5', surface: '#f0f4fa', surface2: '#dde3ef', surface3: '#c8d2e2',
+    border: 'rgba(71,85,105,0.18)', border2: 'rgba(71,85,105,0.32)',
+    text: '#1e293b', muted: '#475569',
+    accent: '#64748b', accent2: '#334155',
     sidebar: '#1e293b', sidebarActive: '#475569',
-    glow: 'rgba(100,116,139,0.08)',
+    glow: 'rgba(148,163,184,0.25)',
     label: '🥈 Prata'
   },
   ouro: {
-    bg: '#fdf8ee', surface: '#ffffff', surface2: '#fef9f0', surface3: '#fef3d0',
-    border: 'rgba(120,80,0,0.09)', border2: 'rgba(120,80,0,0.16)',
-    text: '#78350f', muted: '#92400e',
-    accent: '#d97706', accent2: '#b45309',
-    sidebar: '#1c0f00', sidebarActive: '#d97706',
-    glow: 'rgba(217,119,6,0.1)',
+    bg: '#2a1800', surface: '#1a0f00', surface2: '#261400', surface3: '#331900',
+    border: 'rgba(251,191,36,0.18)', border2: 'rgba(251,191,36,0.35)',
+    text: '#fef3c7', muted: '#fbbf24',
+    accent: '#f59e0b', accent2: '#d97706',
+    sidebar: '#0f0800', sidebarActive: '#b45309',
+    glow: 'rgba(251,191,36,0.2)',
     label: '🥇 Ouro'
   },
   diamante: {
-    bg: '#f0f9ff', surface: '#ffffff', surface2: '#f0faff', surface3: '#e0f5ff',
-    border: 'rgba(0,80,120,0.09)', border2: 'rgba(0,80,120,0.16)',
-    text: '#0c4a6e', muted: '#0369a1',
-    accent: '#0ea5e9', accent2: '#0284c7',
-    sidebar: '#082f49', sidebarActive: '#0ea5e9',
-    glow: 'rgba(14,165,233,0.1)',
+    bg: '#050d1a', surface: '#080f1e', surface2: '#0a1525', surface3: '#0d1c30',
+    border: 'rgba(125,211,252,0.15)', border2: 'rgba(125,211,252,0.3)',
+    text: '#e0f2fe', muted: '#7dd3fc',
+    accent: '#38bdf8', accent2: '#0ea5e9',
+    sidebar: '#020810', sidebarActive: '#0ea5e9',
+    glow: 'rgba(56,189,248,0.18)',
     label: '💎 Diamante'
   },
   rubi: {
-    bg: '#fff1f2', surface: '#ffffff', surface2: '#fff5f5', surface3: '#ffe4e6',
-    border: 'rgba(120,0,20,0.09)', border2: 'rgba(120,0,20,0.16)',
-    text: '#881337', muted: '#9f1239',
+    bg: '#1a0008', surface: '#120006', surface2: '#1f000a', surface3: '#2a000e',
+    border: 'rgba(251,113,133,0.18)', border2: 'rgba(251,113,133,0.35)',
+    text: '#ffe4e6', muted: '#fb7185',
     accent: '#f43f5e', accent2: '#e11d48',
-    sidebar: '#1f0007', sidebarActive: '#f43f5e',
-    glow: 'rgba(244,63,94,0.1)',
+    sidebar: '#0a0004', sidebarActive: '#be123c',
+    glow: 'rgba(244,63,94,0.22)',
     label: '🔴 Rubi'
   },
 };
 
+// ── INJETAR SVG DE TEXTURAS ──────────────────────────────────
+function injectTextureSVG() {
+  if (document.getElementById('texture-defs')) return;
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.id = 'texture-defs';
+  svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;';
+  svg.innerHTML = `
+    <defs>
+      <!-- PRATA: ruído metálico -->
+      <filter id="f-prata" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65 0.15" numOctaves="4" seed="2" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+        <feBlend in="SourceGraphic" in2="gray" mode="overlay" result="blend"/>
+        <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+      </filter>
+      <!-- OURO: ruído granulado quente -->
+      <filter id="f-ouro" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.4 0.1" numOctaves="3" seed="5" result="noise"/>
+        <feColorMatrix type="matrix" values="1 0.8 0 0 0  0.6 0.4 0 0 0  0 0 0 0 0  0 0 0 0.6 0" in="noise" result="gold"/>
+        <feBlend in="SourceGraphic" in2="gold" mode="soft-light" result="blend"/>
+        <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+      </filter>
+      <!-- DIAMANTE: facetas cristalinas -->
+      <filter id="f-diamante" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="turbulence" baseFrequency="0.02 0.04" numOctaves="2" seed="9" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" result="displaced"/>
+        <feColorMatrix type="matrix" values="0.5 0.5 0.5 0 0  0.5 0.5 0.5 0 0  1 1 1 0 0  0 0 0 1 0" in2="displaced" result="crystal"/>
+        <feBlend in="SourceGraphic" in2="crystal" mode="screen"/>
+      </filter>
+      <!-- RUBI: profundidade cristalina vermelha -->
+      <filter id="f-rubi" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.3 0.08" numOctaves="3" seed="7" result="noise"/>
+        <feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0" in="noise" result="red"/>
+        <feBlend in="SourceGraphic" in2="red" mode="hard-light" result="blend"/>
+        <feComposite in="blend" in2="SourceGraphic" operator="in"/>
+      </filter>
+    </defs>`;
+  document.body.appendChild(svg);
+}
+
+// ── INJETAR ESTILOS DE TEXTURA ───────────────────────────────
+function injectTextureStyles() {
+  if (document.getElementById('texture-styles')) return;
+  const style = document.createElement('style');
+  style.id = 'texture-styles';
+  style.textContent = `
+    /* ─── SHIMMER KEYFRAMES ─── */
+    @keyframes shimmer-prata {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes shimmer-ouro {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes shimmer-diamante {
+      0%   { background-position: -300% center; }
+      100% { background-position: 300% center; }
+    }
+    @keyframes shimmer-rubi {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    @keyframes glow-pulse-ouro {
+      0%, 100% { box-shadow: 0 0 20px rgba(251,191,36,0.15), 0 0 60px rgba(251,191,36,0.05); }
+      50%       { box-shadow: 0 0 40px rgba(251,191,36,0.35), 0 0 80px rgba(251,191,36,0.15); }
+    }
+    @keyframes glow-pulse-diamante {
+      0%, 100% { box-shadow: 0 0 20px rgba(56,189,248,0.15), 0 0 60px rgba(56,189,248,0.05); }
+      50%       { box-shadow: 0 0 50px rgba(56,189,248,0.4), 0 0 100px rgba(56,189,248,0.2); }
+    }
+    @keyframes glow-pulse-rubi {
+      0%, 100% { box-shadow: 0 0 20px rgba(244,63,94,0.2), 0 0 60px rgba(244,63,94,0.08); }
+      50%       { box-shadow: 0 0 45px rgba(244,63,94,0.5), 0 0 90px rgba(244,63,94,0.2); }
+    }
+    @keyframes float-particle {
+      0%   { transform: translateY(0) scale(1); opacity: 0.6; }
+      50%  { transform: translateY(-18px) scale(1.15); opacity: 1; }
+      100% { transform: translateY(0) scale(1); opacity: 0.6; }
+    }
+    @keyframes rotate-slow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes facet-shimmer {
+      0%   { opacity: 0.3; transform: skewX(-5deg) translateX(-100%); }
+      100% { opacity: 0.8; transform: skewX(-5deg) translateX(400%); }
+    }
+
+    /* ─── BODY TEXTURED BACKGROUNDS ─── */
+    body.theme-prata {
+      background:
+        repeating-linear-gradient(
+          105deg,
+          transparent 0px, transparent 2px,
+          rgba(255,255,255,0.03) 2px, rgba(255,255,255,0.03) 3px
+        ),
+        linear-gradient(135deg, #c8d2e2 0%, #dde3ef 25%, #b0bdd0 50%, #dde3ef 75%, #c8d2e2 100%) !important;
+      background-size: 6px 6px, 100% 100% !important;
+    }
+    body.theme-ouro {
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(251,191,36,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 70%, rgba(251,191,36,0.06) 0%, transparent 40%),
+        repeating-linear-gradient(
+          45deg,
+          transparent 0px, transparent 4px,
+          rgba(251,191,36,0.03) 4px, rgba(251,191,36,0.03) 5px
+        ),
+        linear-gradient(160deg, #1a0e00 0%, #2a1800 40%, #1f1000 60%, #2a1800 100%) !important;
+      background-size: auto, auto, 8px 8px, 100% 100% !important;
+      animation: glow-pulse-ouro 4s ease-in-out infinite;
+    }
+    body.theme-diamante {
+      background:
+        radial-gradient(ellipse at 15% 20%, rgba(56,189,248,0.12) 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 80%, rgba(99,102,241,0.1) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 50%, rgba(56,189,248,0.05) 0%, transparent 60%),
+        repeating-linear-gradient(
+          60deg,
+          transparent 0px, transparent 8px,
+          rgba(56,189,248,0.04) 8px, rgba(56,189,248,0.04) 9px
+        ),
+        linear-gradient(140deg, #020810 0%, #050d1a 50%, #02060f 100%) !important;
+      background-size: auto, auto, auto, 12px 12px, 100% 100% !important;
+      animation: glow-pulse-diamante 5s ease-in-out infinite;
+    }
+    body.theme-rubi {
+      background:
+        radial-gradient(ellipse at 25% 25%, rgba(244,63,94,0.12) 0%, transparent 45%),
+        radial-gradient(ellipse at 75% 75%, rgba(190,18,60,0.1) 0%, transparent 40%),
+        repeating-linear-gradient(
+          80deg,
+          transparent 0px, transparent 3px,
+          rgba(244,63,94,0.04) 3px, rgba(244,63,94,0.04) 4px
+        ),
+        linear-gradient(145deg, #0a0004 0%, #1a0008 45%, #120006 100%) !important;
+      background-size: auto, auto, 6px 6px, 100% 100% !important;
+      animation: glow-pulse-rubi 3.5s ease-in-out infinite;
+    }
+
+    /* ─── SIDEBAR TEXTURADA ─── */
+    body.theme-prata .sidebar {
+      background: linear-gradient(180deg,
+        #1e293b 0%, #263347 30%, #1a2740 60%, #1e293b 100%
+      ) !important;
+      box-shadow: inset -1px 0 0 rgba(148,163,184,0.15), 4px 0 20px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    body.theme-prata .sidebar::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        transparent 0px, transparent 18px,
+        rgba(148,163,184,0.04) 18px, rgba(148,163,184,0.04) 19px
+      );
+      pointer-events: none;
+    }
+    body.theme-ouro .sidebar {
+      background: linear-gradient(180deg,
+        #0f0800 0%, #1a1000 25%, #120c00 50%, #1a1000 75%, #0f0800 100%
+      ) !important;
+      box-shadow: inset -1px 0 0 rgba(251,191,36,0.15), 4px 0 30px rgba(0,0,0,0.5);
+    }
+    body.theme-diamante .sidebar {
+      background: linear-gradient(180deg,
+        #020810 0%, #030c18 30%, #020a14 60%, #030c18 100%
+      ) !important;
+      box-shadow: inset -1px 0 0 rgba(56,189,248,0.2), 4px 0 30px rgba(2,8,16,0.8);
+    }
+    body.theme-rubi .sidebar {
+      background: linear-gradient(180deg,
+        #0a0004 0%, #120008 30%, #0e0006 60%, #120008 100%
+      ) !important;
+      box-shadow: inset -1px 0 0 rgba(244,63,94,0.15), 4px 0 30px rgba(0,0,0,0.6);
+    }
+
+    /* ─── CARDS TEXTURADOS ─── */
+    body.theme-prata .kpi,
+    body.theme-prata .prog-card,
+    body.theme-prata .xp-card,
+    body.theme-prata .cp,
+    body.theme-prata .panel-card {
+      background: linear-gradient(135deg,
+        #f5f7fa 0%, #e8edf5 30%, #f0f4fa 50%, #dde3ef 70%, #e8edf5 100%
+      ) !important;
+      border-color: rgba(148,163,184,0.4) !important;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset, 0 -1px 0 rgba(0,0,0,0.1) inset, 0 4px 16px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    body.theme-prata .kpi::after,
+    body.theme-prata .prog-card::after,
+    body.theme-prata .panel-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,255,255,0.6) 45%,
+        rgba(255,255,255,0.9) 50%,
+        rgba(255,255,255,0.6) 55%,
+        transparent 100%
+      );
+      animation: shimmer-prata 3.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    body.theme-ouro .kpi,
+    body.theme-ouro .prog-card,
+    body.theme-ouro .xp-card,
+    body.theme-ouro .cp,
+    body.theme-ouro .panel-card {
+      background: linear-gradient(135deg,
+        #1f1200 0%, #2e1a00 20%, #3d2200 40%, #2e1a00 60%, #1f1200 80%, #3d2200 100%
+      ) !important;
+      border-color: rgba(251,191,36,0.3) !important;
+      box-shadow: 0 1px 0 rgba(251,191,36,0.15) inset, 0 -1px 0 rgba(0,0,0,0.4) inset, 0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(251,191,36,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    body.theme-ouro .kpi::after,
+    body.theme-ouro .prog-card::after,
+    body.theme-ouro .panel-card::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -100%;
+      width: 50%; height: 200%;
+      background: linear-gradient(105deg,
+        transparent 0%,
+        rgba(251,191,36,0.12) 40%,
+        rgba(255,215,100,0.35) 50%,
+        rgba(251,191,36,0.12) 60%,
+        transparent 100%
+      );
+      animation: shimmer-ouro 2.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    body.theme-diamante .kpi,
+    body.theme-diamante .prog-card,
+    body.theme-diamante .xp-card,
+    body.theme-diamante .cp,
+    body.theme-diamante .panel-card {
+      background: linear-gradient(135deg,
+        #080f1e 0%, #0d1a2e 25%, #091525 50%, #0d1a2e 75%, #080f1e 100%
+      ) !important;
+      border-color: rgba(125,211,252,0.25) !important;
+      box-shadow: 0 1px 0 rgba(125,211,252,0.1) inset, 0 -1px 0 rgba(0,0,0,0.5) inset, 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(56,189,248,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    body.theme-diamante .kpi::after,
+    body.theme-diamante .prog-card::after,
+    body.theme-diamante .panel-card::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -200%;
+      width: 30%; height: 200%;
+      background: linear-gradient(110deg,
+        transparent 0%,
+        rgba(125,211,252,0.1) 40%,
+        rgba(186,230,253,0.5) 50%,
+        rgba(125,211,252,0.1) 60%,
+        transparent 100%
+      );
+      animation: facet-shimmer 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    body.theme-diamante .kpi::before,
+    body.theme-diamante .prog-card::before {
+      background: linear-gradient(90deg, rgba(56,189,248,0.6), rgba(99,102,241,0.4)) !important;
+      opacity: 1 !important;
+    }
+
+    body.theme-rubi .kpi,
+    body.theme-rubi .prog-card,
+    body.theme-rubi .xp-card,
+    body.theme-rubi .cp,
+    body.theme-rubi .panel-card {
+      background: linear-gradient(135deg,
+        #120006 0%, #1f000c 25%, #2a0010 40%, #1f000c 60%, #120006 80%, #2a0010 100%
+      ) !important;
+      border-color: rgba(244,63,94,0.25) !important;
+      box-shadow: 0 1px 0 rgba(244,63,94,0.12) inset, 0 -1px 0 rgba(0,0,0,0.5) inset, 0 4px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(244,63,94,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    body.theme-rubi .kpi::after,
+    body.theme-rubi .prog-card::after,
+    body.theme-rubi .panel-card::after {
+      content: '';
+      position: absolute;
+      top: -50%; left: -100%;
+      width: 50%; height: 200%;
+      background: linear-gradient(105deg,
+        transparent 0%,
+        rgba(244,63,94,0.1) 40%,
+        rgba(255,160,180,0.35) 50%,
+        rgba(244,63,94,0.1) 60%,
+        transparent 100%
+      );
+      animation: shimmer-rubi 3s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    /* ─── TOPBAR TEXTURADA ─── */
+    body.theme-prata .topbar {
+      background: linear-gradient(90deg, rgba(220,228,242,0.95) 0%, rgba(240,244,250,0.95) 50%, rgba(220,228,242,0.95) 100%) !important;
+      border-bottom-color: rgba(148,163,184,0.3) !important;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8), 0 2px 8px rgba(0,0,0,0.06);
+    }
+    body.theme-ouro .topbar {
+      background: linear-gradient(90deg, rgba(20,12,0,0.96) 0%, rgba(30,18,0,0.96) 50%, rgba(20,12,0,0.96) 100%) !important;
+      border-bottom-color: rgba(251,191,36,0.2) !important;
+      box-shadow: 0 1px 0 rgba(251,191,36,0.1), 0 2px 12px rgba(0,0,0,0.4);
+    }
+    body.theme-diamante .topbar {
+      background: linear-gradient(90deg, rgba(3,10,22,0.97) 0%, rgba(6,14,26,0.97) 50%, rgba(3,10,22,0.97) 100%) !important;
+      border-bottom-color: rgba(56,189,248,0.2) !important;
+      box-shadow: 0 1px 0 rgba(56,189,248,0.1), 0 2px 12px rgba(0,0,0,0.5);
+    }
+    body.theme-rubi .topbar {
+      background: linear-gradient(90deg, rgba(10,0,5,0.97) 0%, rgba(18,0,8,0.97) 50%, rgba(10,0,5,0.97) 100%) !important;
+      border-bottom-color: rgba(244,63,94,0.2) !important;
+      box-shadow: 0 1px 0 rgba(244,63,94,0.1), 0 2px 12px rgba(0,0,0,0.5);
+    }
+
+    /* ─── FAB TEXTURIZADO ─── */
+    body.theme-prata #add-btn {
+      background: linear-gradient(135deg, #475569 0%, #64748b 40%, #94a3b8 60%, #64748b 80%, #475569 100%) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-prata 2.5s linear infinite !important;
+      box-shadow: 0 4px 20px rgba(100,116,139,0.5), 0 0 0 1px rgba(148,163,184,0.3) !important;
+    }
+    body.theme-ouro #add-btn {
+      background: linear-gradient(135deg, #92400e 0%, #b45309 20%, #d97706 40%, #fbbf24 55%, #f59e0b 70%, #b45309 85%, #92400e 100%) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-ouro 2s linear infinite !important;
+      box-shadow: 0 4px 24px rgba(251,191,36,0.5), 0 0 40px rgba(251,191,36,0.2), 0 0 0 1px rgba(251,191,36,0.3) !important;
+    }
+    body.theme-diamante #add-btn {
+      background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 25%, #38bdf8 45%, #bae6fd 55%, #38bdf8 70%, #0ea5e9 85%, #0284c7 100%) !important;
+      background-size: 300% 100% !important;
+      animation: shimmer-diamante 2.2s linear infinite !important;
+      box-shadow: 0 4px 28px rgba(56,189,248,0.6), 0 0 50px rgba(56,189,248,0.25), 0 0 0 1px rgba(125,211,252,0.4) !important;
+    }
+    body.theme-rubi #add-btn {
+      background: linear-gradient(135deg, #9f1239 0%, #be123c 20%, #e11d48 40%, #fb7185 55%, #f43f5e 70%, #be123c 85%, #9f1239 100%) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-rubi 2s linear infinite !important;
+      box-shadow: 0 4px 24px rgba(244,63,94,0.6), 0 0 45px rgba(244,63,94,0.25), 0 0 0 1px rgba(251,113,133,0.3) !important;
+    }
+
+    /* ─── LEVEL BADGE TEXTURIZADO ─── */
+    body.theme-prata .level-badge {
+      background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 40%, #f1f5f9 55%, #cbd5e1 70%, #94a3b8 100%) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-prata 2.5s linear infinite !important;
+      color: #1e293b !important;
+      border-color: rgba(148,163,184,0.6) !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.3) inset !important;
+    }
+    body.theme-ouro .level-badge {
+      background: linear-gradient(135deg, #92400e 0%, #d97706 30%, #fbbf24 50%, #fde68a 60%, #fbbf24 70%, #d97706 85%, #92400e 100%) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-ouro 1.8s linear infinite !important;
+      color: #1a0800 !important;
+      border-color: rgba(251,191,36,0.7) !important;
+      box-shadow: 0 2px 10px rgba(251,191,36,0.4), 0 0 20px rgba(251,191,36,0.15) !important;
+    }
+    body.theme-diamante .level-badge {
+      background: linear-gradient(135deg, #0369a1 0%, #0ea5e9 25%, #38bdf8 45%, #e0f2fe 55%, #38bdf8 70%, #0ea5e9 85%, #0369a1 100%) !important;
+      background-size: 300% 100% !important;
+      animation: shimmer-diamante 2s linear infinite !important;
+      color: #082f49 !important;
+      border-color: rgba(125,211,252,0.7) !important;
+      box-shadow: 0 2px 12px rgba(56,189,248,0.5), 0 0 25px rgba(56,189,248,0.2) !important;
+    }
+    body.theme-rubi .level-badge {
+      background: linear-gradient(135deg, #9f1239 0%, #e11d48 25%, #f43f5e 45%, #fda4af 55%, #f43f5e 70%, #e11d48 85%, #9f1239 100%) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-rubi 1.8s linear infinite !important;
+      color: #fff !important;
+      border-color: rgba(251,113,133,0.7) !important;
+      box-shadow: 0 2px 12px rgba(244,63,94,0.5), 0 0 25px rgba(244,63,94,0.2) !important;
+    }
+
+    /* ─── PROGRESS BAR TEXTURIZADA ─── */
+    body.theme-prata .prog-fill {
+      background: linear-gradient(90deg, #475569, #94a3b8, #e2e8f0, #94a3b8, #475569) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-prata 2s linear infinite !important;
+      box-shadow: 0 0 8px rgba(148,163,184,0.6) !important;
+    }
+    body.theme-ouro .prog-fill {
+      background: linear-gradient(90deg, #92400e, #d97706, #fbbf24, #fde68a, #fbbf24, #d97706, #92400e) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-ouro 1.5s linear infinite !important;
+      box-shadow: 0 0 12px rgba(251,191,36,0.7) !important;
+    }
+    body.theme-diamante .prog-fill {
+      background: linear-gradient(90deg, #0369a1, #0ea5e9, #38bdf8, #bae6fd, #38bdf8, #0ea5e9, #0369a1) !important;
+      background-size: 300% 100% !important;
+      animation: shimmer-diamante 1.8s linear infinite !important;
+      box-shadow: 0 0 16px rgba(56,189,248,0.8) !important;
+    }
+    body.theme-rubi .prog-fill {
+      background: linear-gradient(90deg, #9f1239, #e11d48, #f43f5e, #fda4af, #f43f5e, #e11d48, #9f1239) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-rubi 1.5s linear infinite !important;
+      box-shadow: 0 0 14px rgba(244,63,94,0.8) !important;
+    }
+
+    /* ─── TEXTO NOS TEMAS ESCUROS ─── */
+    body.theme-ouro .kpi-value,
+    body.theme-ouro .prog-pct,
+    body.theme-ouro .prog-meta-val { color: #fde68a !important; }
+    body.theme-ouro .kpi-label,
+    body.theme-ouro .kpi-sub,
+    body.theme-ouro .prog-meta-label,
+    body.theme-ouro .prog-labels,
+    body.theme-ouro .section-label { color: rgba(251,191,36,0.6) !important; }
+    body.theme-ouro .topbar-title { color: #fef3c7 !important; }
+    body.theme-ouro .topbar-sub { color: rgba(251,191,36,0.7) !important; }
+    body.theme-ouro .topbar-date { background: rgba(251,191,36,0.1) !important; border-color: rgba(251,191,36,0.2) !important; color: #fbbf24 !important; }
+    body.theme-ouro .cp-val { color: #fde68a !important; }
+
+    body.theme-diamante .kpi-value,
+    body.theme-diamante .prog-pct,
+    body.theme-diamante .prog-meta-val { color: #bae6fd !important; }
+    body.theme-diamante .kpi-label,
+    body.theme-diamante .kpi-sub,
+    body.theme-diamante .prog-meta-label,
+    body.theme-diamante .prog-labels,
+    body.theme-diamante .section-label { color: rgba(125,211,252,0.6) !important; }
+    body.theme-diamante .topbar-title { color: #e0f2fe !important; }
+    body.theme-diamante .topbar-sub { color: rgba(125,211,252,0.7) !important; }
+    body.theme-diamante .topbar-date { background: rgba(56,189,248,0.1) !important; border-color: rgba(56,189,248,0.2) !important; color: #7dd3fc !important; }
+    body.theme-diamante .cp-val { color: #bae6fd !important; }
+
+    body.theme-rubi .kpi-value,
+    body.theme-rubi .prog-pct,
+    body.theme-rubi .prog-meta-val { color: #fda4af !important; }
+    body.theme-rubi .kpi-label,
+    body.theme-rubi .kpi-sub,
+    body.theme-rubi .prog-meta-label,
+    body.theme-rubi .prog-labels,
+    body.theme-rubi .section-label { color: rgba(251,113,133,0.6) !important; }
+    body.theme-rubi .topbar-title { color: #ffe4e6 !important; }
+    body.theme-rubi .topbar-sub { color: rgba(251,113,133,0.7) !important; }
+    body.theme-rubi .topbar-date { background: rgba(244,63,94,0.1) !important; border-color: rgba(244,63,94,0.2) !important; color: #fb7185 !important; }
+    body.theme-rubi .cp-val { color: #fda4af !important; }
+
+    /* ─── NIVEL STEPS TEXTURIZADOS ─── */
+    body.theme-prata .ns.prata.ativo {
+      background: linear-gradient(135deg, #94a3b8, #cbd5e1, #f1f5f9, #cbd5e1, #94a3b8) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-prata 2s linear infinite !important;
+      color: #1e293b !important;
+      border-color: #94a3b8 !important;
+      box-shadow: 0 0 8px rgba(148,163,184,0.5) !important;
+    }
+    body.theme-ouro .ns.ouro.ativo {
+      background: linear-gradient(135deg, #92400e, #d97706, #fbbf24, #d97706, #92400e) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-ouro 1.8s linear infinite !important;
+      color: #1a0800 !important;
+      border-color: #fbbf24 !important;
+      box-shadow: 0 0 10px rgba(251,191,36,0.5) !important;
+    }
+    body.theme-diamante .ns.diamante.ativo {
+      background: linear-gradient(135deg, #0369a1, #0ea5e9, #38bdf8, #0ea5e9, #0369a1) !important;
+      background-size: 300% 100% !important;
+      animation: shimmer-diamante 1.8s linear infinite !important;
+      color: #082f49 !important;
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 12px rgba(56,189,248,0.6) !important;
+    }
+    body.theme-rubi .ns.rubi.ativo {
+      background: linear-gradient(135deg, #9f1239, #e11d48, #f43f5e, #e11d48, #9f1239) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-rubi 1.8s linear infinite !important;
+      color: #fff !important;
+      border-color: #f43f5e !important;
+      box-shadow: 0 0 12px rgba(244,63,94,0.6) !important;
+    }
+
+    /* ─── XPFILL TEXTURIZADA ─── */
+    body.theme-prata .xp-fill {
+      background: linear-gradient(90deg, #475569, #94a3b8, #e2e8f0, #94a3b8, #475569) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-prata 2s linear infinite !important;
+    }
+    body.theme-ouro .xp-fill {
+      background: linear-gradient(90deg, #92400e, #fbbf24, #fde68a, #fbbf24, #92400e) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-ouro 1.5s linear infinite !important;
+      box-shadow: 0 0 8px rgba(251,191,36,0.6) !important;
+    }
+    body.theme-diamante .xp-fill {
+      background: linear-gradient(90deg, #0369a1, #38bdf8, #bae6fd, #38bdf8, #0369a1) !important;
+      background-size: 300% 100% !important;
+      animation: shimmer-diamante 1.8s linear infinite !important;
+      box-shadow: 0 0 10px rgba(56,189,248,0.7) !important;
+    }
+    body.theme-rubi .xp-fill {
+      background: linear-gradient(90deg, #9f1239, #f43f5e, #fda4af, #f43f5e, #9f1239) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer-rubi 1.5s linear infinite !important;
+      box-shadow: 0 0 10px rgba(244,63,94,0.7) !important;
+    }
+
+    /* ─── PARTÍCULAS AMBIENTE ─── */
+    .theme-particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .theme-particle {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* ─── TRANSIÇÃO GLOBAL ─── */
+    body, .sidebar, .topbar, .kpi, .prog-card, .xp-card, .cp, .panel-card {
+      transition: background 0.8s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease !important;
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// ── PARTÍCULAS AMBIENTE ──────────────────────────────────────
+function setupParticles(theme) {
+  let container = document.getElementById('theme-particles');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'theme-particles';
+    container.className = 'theme-particles';
+    document.body.appendChild(container);
+  }
+  container.innerHTML = '';
+  if (theme === 'semcor') return;
+
+  const configs = {
+    prata: { count: 8, colors: ['rgba(203,213,225,0.6)','rgba(241,245,249,0.8)','rgba(148,163,184,0.5)'], sizes: [2,3,4], dur: [4,6,8] },
+    ouro:  { count: 10, colors: ['rgba(251,191,36,0.5)','rgba(253,230,138,0.7)','rgba(245,158,11,0.4)'], sizes: [2,3,5], dur: [3,5,7] },
+    diamante: { count: 12, colors: ['rgba(56,189,248,0.6)','rgba(186,230,253,0.8)','rgba(99,102,241,0.4)'], sizes: [1,2,4], dur: [3,4,6] },
+    rubi: { count: 9, colors: ['rgba(244,63,94,0.5)','rgba(253,164,175,0.7)','rgba(190,18,60,0.4)'], sizes: [2,3,5], dur: [3,5,7] },
+  };
+  const cfg = configs[theme];
+  if (!cfg) return;
+
+  for (let i = 0; i < cfg.count; i++) {
+    const p = document.createElement('div');
+    p.className = 'theme-particle';
+    const size = cfg.sizes[Math.floor(Math.random() * cfg.sizes.length)];
+    const color = cfg.colors[Math.floor(Math.random() * cfg.colors.length)];
+    const dur = cfg.dur[0] + Math.random() * (cfg.dur[2] - cfg.dur[0]);
+    const delay = Math.random() * dur;
+    const left = 5 + Math.random() * 90;
+    const top = 10 + Math.random() * 80;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      background:${color};
+      left:${left}%; top:${top}%;
+      animation: float-particle ${dur.toFixed(1)}s ${delay.toFixed(1)}s ease-in-out infinite;
+      box-shadow: 0 0 ${size * 3}px ${color};
+    `;
+    container.appendChild(p);
+  }
+}
+
 function applyTheme(themeKey) {
   const t = TEMAS[themeKey];
   if (!t) return;
+
+  injectTextureSVG();
+  injectTextureStyles();
+
   const r = document.documentElement.style;
   r.setProperty('--bg',       t.bg);
   r.setProperty('--surface',  t.surface);
@@ -1017,22 +1593,34 @@ function applyTheme(themeKey) {
   r.setProperty('--muted',    t.muted);
   r.setProperty('--accent',   t.accent);
   r.setProperty('--accent2',  t.accent2);
-  // Sidebar
-  document.querySelector('.sidebar').style.background = t.sidebar;
+
+  // Remove previous theme classes
+  document.body.classList.remove('theme-prata','theme-ouro','theme-diamante','theme-rubi');
+  if (themeKey !== 'semcor') {
+    document.body.classList.add('theme-' + themeKey);
+  }
+
+  // Sidebar base (handled by CSS classes, reset inline)
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar) {
+    sidebar.style.background = '';
+  }
   document.querySelectorAll('.nav-item.active').forEach(el => {
     el.style.background = t.sidebarActive;
   });
-  // Glow
-  const glowStyle = `radial-gradient(circle, ${t.glow} 0%, transparent 65%)`;
-  // FAB
+
+  // FAB base (textured by CSS classes)
   const fab = document.getElementById('add-btn');
-  if (fab) {
+  if (fab && themeKey === 'semcor') {
     fab.style.background = t.accent;
-    fab.style.boxShadow = `0 4px 24px ${t.glow.replace('0.1','0.45').replace('0.07','0.45').replace('0.08','0.45')}`;
+    fab.style.boxShadow = `0 4px 24px ${t.glow.replace('0.07','0.45').replace('0.08','0.45').replace('0.1','0.45')}`;
+    fab.style.animation = '';
+  } else if (fab) {
+    fab.style.background = '';
+    fab.style.boxShadow = '';
   }
-  // Transition suave
-  document.body.style.transition = 'background 0.6s ease';
-  document.querySelector('.main').style.transition = 'background 0.6s ease';
+
+  setupParticles(themeKey);
 }
 
 const FERIADOS = ['01-01','04-18','04-20','04-21','05-01','06-19','09-07','10-12','11-02','11-15','11-20','12-25'];
