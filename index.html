@@ -617,6 +617,47 @@
     display: none; padding-left: 4px;
   }
 
+  /* ── FAB ── */
+  .fab {
+    position: fixed;
+    bottom: 28px;
+    right: 32px;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 24px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 99px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(124,106,247,0.45);
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  }
+  .fab:hover {
+    background: #6a58e8;
+    box-shadow: 0 6px 32px rgba(124,106,247,0.6);
+    transform: translateY(-2px);
+  }
+  .fab:active { transform: scale(0.97); }
+  .fab:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .fab-icon {
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1;
+  }
+  body.is-dash .fab { display: flex; }
+
+  @media (max-width: 600px) {
+    .fab { bottom: 20px; right: 20px; padding: 14px 18px; }
+    .fab-label { display: none; }
+  }
+
   /* ── TOAST ── */
   #toast {
     position: fixed; bottom: 28px; left: 50%;
@@ -856,9 +897,6 @@
         <div class="section-label">Checkpoints do mês</div>
         <div class="cp-list" id="d-checkpoints" style="margin-bottom:20px;"></div>
 
-        <!-- CTA -->
-        <button class="add-btn" id="add-btn" onclick="addVenda()">+ Registrar venda</button>
-
       </div><!-- /dash-left -->
 
       <!-- RIGHT -->
@@ -889,6 +927,12 @@
 
     </div><!-- /dash-body -->
   </div><!-- /s-dash -->
+
+<!-- FAB fixo -->
+<button class="fab" id="add-btn" onclick="addVenda()">
+  <span class="fab-icon">+</span>
+  <span class="fab-label">Registrar venda</span>
+</button>
 
 </div><!-- /main -->
 
