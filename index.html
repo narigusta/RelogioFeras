@@ -7,22 +7,22 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:       #0a0a0f;
-    --surface:  #111118;
-    --surface2: #16161e;
-    --surface3: #1c1c26;
-    --border:   rgba(255,255,255,0.07);
-    --border2:  rgba(255,255,255,0.13);
-    --text:     #f0f0f5;
-    --muted:    #7a7a8c;
-    --accent:   #7c6af7;
-    --accent2:  #a898ff;
+    --bg:       #000d37;
+    --surface:  #001044;
+    --surface2: #001454;
+    --surface3: #001a66;
+    --border:   rgba(248,248,248,0.08);
+    --border2:  rgba(248,248,248,0.15);
+    --text:     #F8F8F8;
+    --muted:    #7b8db8;
+    --accent:   #2B50BB;
+    --accent2:  #5578d4;
     --green:    #3ecf8e;
     --red:      #f56565;
     --amber:    #f6ad55;
     --silver:   #94a3b8;
     --gold:     #f6ad55;
-    --diamond:  #a898ff;
+    --diamond:  #5578d4;
     --ruby:     #fc8181;
     --sidebar-w: 220px;
   }
@@ -43,14 +43,14 @@
     content: '';
     position: fixed; top: -30%; left: -10%;
     width: 55%; height: 55%;
-    background: radial-gradient(circle, rgba(124,106,247,0.1) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(43,80,187,0.18) 0%, transparent 65%);
     pointer-events: none; z-index: 0;
   }
   body::after {
     content: '';
     position: fixed; bottom: -25%; right: -5%;
     width: 45%; height: 45%;
-    background: radial-gradient(circle, rgba(62,207,142,0.06) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(43,80,187,0.1) 0%, transparent 65%);
     pointer-events: none; z-index: 0;
   }
 
@@ -76,8 +76,8 @@
   }
   .logo-icon {
     width: 34px; height: 34px;
-    background: rgba(124,106,247,0.18);
-    border: 1px solid rgba(124,106,247,0.35);
+    background: rgba(43,80,187,0.18);
+    border: 1px solid rgba(43,80,187,0.35);
     border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     font-size: 16px; flex-shrink: 0;
@@ -599,7 +599,7 @@
     transition: background 0.2s, transform 0.1s;
     margin-top: 4px;
   }
-  .btn-primary:hover { background: #6a58e8; }
+  .btn-primary:hover { background: #1e3d9e; }
   .btn-primary:active { transform: scale(0.98); }
 
   .btn-ghost {
@@ -636,12 +636,12 @@
     font-weight: 700;
     letter-spacing: 0.3px;
     cursor: pointer;
-    box-shadow: 0 4px 24px rgba(124,106,247,0.45);
+    box-shadow: 0 4px 24px rgba(43,80,187,0.5);
     transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   }
   .fab:hover {
-    background: #6a58e8;
-    box-shadow: 0 6px 32px rgba(124,106,247,0.6);
+    background: #1e3d9e;
+    box-shadow: 0 6px 32px rgba(43,80,187,0.65);
     transform: translateY(-2px);
   }
   .fab:active { transform: scale(0.97); }
