@@ -236,8 +236,223 @@ body::after{
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQDQiHqp0sVlk5vT-0EI9fiZHiPZhFTp6PMnzIF4l_e5iAF/exec"; let user = null; const NIVEIS = [ { nome:'Fera', cls:'fera', min:0, max:30, barCor:'#94a3b8', badgeCls:'badge-fera' }, { nome:'Prata', cls:'prata', min:31, max:40, barCor:'#cbd5e1', badgeCls:'badge-prata' }, { nome:'Ouro', cls:'ouro', min:41, max:50, barCor:'#f6ad55', badgeCls:'badge-ouro' }, { nome:'Diamante', cls:'diamante', min:51, max:60, barCor:'#a898ff', badgeCls:'badge-diamante' }, { nome:'Rubi', cls:'rubi', min:61, max:999, barCor:'#fc8181', badgeCls:'badge-rubi' }, ]; const FERIADOS = ['01-01','04-18','04-20','04-21','05-01','06-19','09-07','10-12','11-02','11-15','11-20','12-25']; function d0(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); } function isDiaUtil(date) { const dow = date.getDay(); const key = String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0'); return dow !== 0 && dow !== 6 && !FERIADOS.includes(key); } function diasUteisMes(ano, mes) { const dias = []; const total = new Date(ano, mes+1, 0).getDate(); for (let d = 1; d <= total; d++) { const dt = new Date(ano, mes, d); if (isDiaUtil(dt)) dias.push(dt); } return dias; } function getNivelIdx(v) { for (let i = NIVEIS.length-1; i >= 0; i--) { if (v >= NIVEIS[i].min) return i; } return 0; } function calcCheckpoints(meta) { const hoje = new Date(); const uteis = diasUteisMes(hoje.getFullYear(), hoje.getMonth()); const total = uteis.length; if (!total) return []; return [0.25, 0.5, 0.75, 1].map(p => { const idx = Math.min(Math.round(p * total) - 1, total - 1); return { data: uteis[idx], valor: Math.round(meta * p), pct: Math.round(p * 100) }; }); } function go(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); } function showLoading() { document.getElementById('loading').classList.add('show'); } function hideLoading() { document.getElementById('loading').classList.remove('show'); } function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); } function renderNivelSteps(idxAtual) { const wrap = document.getElementById('nivel-steps'); wrap.innerHTML = ''; NIVEIS.forEach((n, i) => { const el = document.createElement('div'); el.className = 'ns ' + n.cls + (i === idxAtual ? ' ativo' : ''); el.textContent = n.nome; wrap.appendChild(el); }); } function renderDash(vendas) { const meta = user.meta; const hoje = new Date(); const hojeD0 = d0(hoje); document.getElementById('d-nome').textContent = 'Olá, ' + user.nome.split(' ')[0] + '!'; document.getElementById('d-data').textContent = hoje.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' }); document.getElementById('d-meta').textContent = meta; document.getElementById('d-total').textContent = vendas; const uteis = diasUteisMes(hoje.getFullYear(), hoje.getMonth()); const duRest = uteis.filter(d => d0(d) > hojeD0).length; const faltam = Math.max(meta - vendas, 0); document.getElementById('d-du-rest').textContent = duRest; document.getElementById('d-ritmo').textContent = duRest > 0 ? (Math.ceil(faltam / duRest) + '/dia') : '—'; const pct = Math.min(Math.round((vendas / meta) * 100), 100); document.getElementById('d-pct').textContent = pct + '%'; const idxN = getNivelIdx(vendas); const nv = NIVEIS[idxN]; document.getElementById('d-bar').style.width = pct + '%'; document.getElementById('d-bar').style.background = nv.barCor; const lvBadge = document.getElementById('d-level'); lvBadge.textContent = nv.nome; lvBadge.className = 'level-badge ' + nv.badgeCls; renderNivelSteps(idxN); const proxIdx = idxN < NIVEIS.length - 1 ? idxN + 1 : null; const xpFill = document.getElementById('d-xp-fill'); if (proxIdx !== null) { const prox = NIVEIS[proxIdx]; const range = prox.min - nv.min; const prog = vendas - nv.min; xpFill.style.width = Math.min(Math.round((prog / range) * 100), 100) + '%'; xpFill.style.background = prox.barCor; document.getElementById('d-xp-desc').textContent = 'Progresso para ' + prox.nome; document.getElementById('d-xp').textContent = vendas + ' / ' + prox.min; } else { xpFill.style.width = '100%'; xpFill.style.background = nv.barCor; document.getElementById('d-xp-desc').textContent = 'Nível máximo atingido!'; document.getElementById('d-xp').textContent = vendas + ' vendas'; } const checkpoints = calcCheckpoints(meta); let alvo = 0; for (const c of checkpoints) { if (d0(c.data) <= hojeD0) alvo = c.valor; } const st = document.getElementById('d-status'); if (vendas >= meta) { st.textContent = 'Meta batida!'; st.className = 'status-badge s-green'; } else if (vendas >= alvo) { st.textContent = 'No ritmo — faltam ' + faltam + ' vendas'; st.className = 'status-badge s-green'; } else { st.textContent = 'Atrasado — faltam ' + faltam + ' vendas'; st.className = 'status-badge s-red'; } const cpWrap = document.getElementById('d-checkpoints'); cpWrap.innerHTML = ''; checkpoints.forEach((c, i) => { const cpD0 = d0(c.data); const passou = cpD0 <= hojeD0; const ehHoje = cpD0.getTime() === hojeD0.getTime(); const anterior = i > 0 ? d0(checkpoints[i-1].data) : null; const isCurrent = !passou && (i === 0 || (anterior && anterior <= hojeD0)); const done = passou && vendas >= c.valor; const atrasado = passou && !done && !ehHoje; let cl = 'cp'; if (done) cl = 'cp done'; else if (atrasado) cl = 'cp atrasado'; else if (isCurrent || ehHoje) cl = 'cp current'; const dateStr = c.data.toLocaleDateString('pt-BR', { day:'numeric', month:'short' }); let tag = ''; if (done) tag = '<span class="cp-tag tag-done">✓ feito</span>'; else if (ehHoje) tag = '<span class="cp-tag tag-hoje">hoje</span>'; else if (isCurrent) tag = '<span class="cp-tag tag-atual">atual</span>'; else if (atrasado) tag = '<span class="cp-tag tag-atrasado">atrasado</span>'; cpWrap.innerHTML += <div class="${cl}"> <span class="cp-label">${c.pct}% — ${dateStr}</span> <div class="cp-right"><span class="cp-val">${c.valor} vendas</span>${tag}</div> </div>; }); const todayKey = 'vendas_hoje_' + hoje.toDateString(); const hj = parseInt(localStorage.getItem(todayKey) || '0'); document.getElementById('d-streak').textContent = hj + (hj === 1 ? ' venda hoje' : ' vendas hoje'); } async function login() { const email = document.getElementById('l-email').value; const senha = document.getElementById('l-senha').value; const err = document.getElementById('l-err'); err.style.display = 'none'; if (!email || !senha) { err.textContent = 'Preencha todos os campos.'; err.style.display = 'block'; return; } showLoading(); try { const res = await fetch(API, { method:'POST', body: JSON.stringify({ action:'login', email, senha }) }); const data = await res.json(); if (!data.success) { hideLoading(); err.textContent = 'Email ou senha inválidos.'; err.style.display = 'block'; return; } user = data.user; const r2 = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) }); const d2 = await r2.json(); renderDash(d2.total); go('s-dash'); } catch(e) { err.textContent = 'Erro de conexão.'; err.style.display = 'block'; } hideLoading(); } async function register() { const nome = document.getElementById('c-nome').value; const email = document.getElementById('c-email').value; const senha = document.getElementById('c-senha').value; const err = document.getElementById('c-err'); err.style.display = 'none'; if (!nome || !email || !senha) { err.textContent = 'Preencha todos os campos.'; err.style.display = 'block'; return; } showLoading(); try { await fetch(API, { method:'POST', body: JSON.stringify({ action:'register', nome, email, senha }) }); toast('Conta criada! Faça login.'); go('s-login'); } catch(e) { err.textContent = 'Erro ao criar conta.'; err.style.display = 'block'; } hideLoading(); } async function addVenda() { const btn = document.getElementById('add-btn'); btn.disabled = true; btn.textContent = 'Registrando...'; try { await fetch(API, { method:'POST', body: JSON.stringify({ action:'saveVenda', userId: user.id }) }); const r2 = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) }); const d2 = await r2.json(); const key = 'vendas_hoje_' + new Date().toDateString(); localStorage.setItem(key, String(parseInt(localStorage.getItem(key) || '0') + 1)); renderDash(d2.total); toast('Venda registrada!'); } catch(e) { toast('Erro ao registrar.'); } btn.disabled = false; btn.textContent = '+ Registrar venda'; } function logout() { user = null; go('s-inicio'); }
-</script>
+const API = "https://script.google.com/macros/s/AKfycbyIL2NlyRaWY664scK9EiQDQiHqp0sVlk5vT-0EI9fiZHiPZhFTp6PMnzIF4l_e5iAF/exec";
+let user = null;
 
+const NIVEIS = [
+  { nome:'Fera',     cls:'fera',     min:0,  max:30,  barCor:'#94a3b8', badgeCls:'badge-fera' },
+  { nome:'Prata',    cls:'prata',    min:31, max:40,  barCor:'#cbd5e1', badgeCls:'badge-prata' },
+  { nome:'Ouro',     cls:'ouro',     min:41, max:50,  barCor:'#f6ad55', badgeCls:'badge-ouro' },
+  { nome:'Diamante', cls:'diamante', min:51, max:60,  barCor:'#a898ff', badgeCls:'badge-diamante' },
+  { nome:'Rubi',     cls:'rubi',     min:61, max:999, barCor:'#fc8181', badgeCls:'badge-rubi' },
+];
+
+const FERIADOS = ['01-01','04-18','04-20','04-21','05-01','06-19','09-07','10-12','11-02','11-15','11-20','12-25'];
+
+function d0(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
+
+function isDiaUtil(date) {
+  const dow = date.getDay();
+  const key = String(date.getMonth()+1).padStart(2,'0') + '-' + String(date.getDate()).padStart(2,'0');
+  return dow !== 0 && dow !== 6 && !FERIADOS.includes(key);
+}
+
+function diasUteisMes(ano, mes) {
+  const dias = [];
+  const total = new Date(ano, mes+1, 0).getDate();
+  for (let d = 1; d <= total; d++) {
+    const dt = new Date(ano, mes, d);
+    if (isDiaUtil(dt)) dias.push(dt);
+  }
+  return dias;
+}
+
+function getNivelIdx(v) {
+  for (let i = NIVEIS.length-1; i >= 0; i--) { if (v >= NIVEIS[i].min) return i; }
+  return 0;
+}
+
+function calcCheckpoints(meta) {
+  const hoje = new Date();
+  const uteis = diasUteisMes(hoje.getFullYear(), hoje.getMonth());
+  const total = uteis.length;
+  if (!total) return [];
+  return [0.25, 0.5, 0.75, 1].map(p => {
+    const idx = Math.min(Math.round(p * total) - 1, total - 1);
+    return { data: uteis[idx], valor: Math.round(meta * p), pct: Math.round(p * 100) };
+  });
+}
+
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showLoading()  { document.getElementById('loading').classList.add('show'); }
+function hideLoading()  { document.getElementById('loading').classList.remove('show'); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function renderNivelSteps(idxAtual) {
+  const wrap = document.getElementById('nivel-steps');
+  wrap.innerHTML = '';
+  NIVEIS.forEach((n, i) => {
+    const el = document.createElement('div');
+    el.className = 'ns ' + n.cls + (i === idxAtual ? ' ativo' : '');
+    el.textContent = n.nome;
+    wrap.appendChild(el);
+  });
+}
+
+function renderDash(vendas) {
+  const meta = user.meta;
+  const hoje = new Date();
+  const hojeD0 = d0(hoje);
+
+  document.getElementById('d-nome').textContent = 'Olá, ' + user.nome.split(' ')[0] + '!';
+  document.getElementById('d-data').textContent = hoje.toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long' });
+  document.getElementById('d-meta').textContent = meta;
+  document.getElementById('d-total').textContent = vendas;
+
+  const uteis = diasUteisMes(hoje.getFullYear(), hoje.getMonth());
+  const duRest = uteis.filter(d => d0(d) > hojeD0).length;
+  const faltam = Math.max(meta - vendas, 0);
+  document.getElementById('d-du-rest').textContent = duRest;
+  document.getElementById('d-ritmo').textContent = duRest > 0 ? (Math.ceil(faltam / duRest) + '/dia') : '—';
+
+  const pct = Math.min(Math.round((vendas / meta) * 100), 100);
+  document.getElementById('d-pct').textContent = pct + '%';
+  const idxN = getNivelIdx(vendas);
+  const nv = NIVEIS[idxN];
+  document.getElementById('d-bar').style.width = pct + '%';
+  document.getElementById('d-bar').style.background = nv.barCor;
+
+  const lvBadge = document.getElementById('d-level');
+  lvBadge.textContent = nv.nome;
+  lvBadge.className = 'level-badge ' + nv.badgeCls;
+  renderNivelSteps(idxN);
+
+  const proxIdx = idxN < NIVEIS.length - 1 ? idxN + 1 : null;
+  const xpFill = document.getElementById('d-xp-fill');
+  if (proxIdx !== null) {
+    const prox = NIVEIS[proxIdx];
+    const range = prox.min - nv.min;
+    const prog = vendas - nv.min;
+    xpFill.style.width = Math.min(Math.round((prog / range) * 100), 100) + '%';
+    xpFill.style.background = prox.barCor;
+    document.getElementById('d-xp-desc').textContent = 'Progresso para ' + prox.nome;
+    document.getElementById('d-xp').textContent = vendas + ' / ' + prox.min;
+  } else {
+    xpFill.style.width = '100%';
+    xpFill.style.background = nv.barCor;
+    document.getElementById('d-xp-desc').textContent = 'Nível máximo atingido!';
+    document.getElementById('d-xp').textContent = vendas + ' vendas';
+  }
+
+  const checkpoints = calcCheckpoints(meta);
+  let alvo = 0;
+  for (const c of checkpoints) { if (d0(c.data) <= hojeD0) alvo = c.valor; }
+
+  const st = document.getElementById('d-status');
+  if (vendas >= meta) {
+    st.textContent = 'Meta batida!'; st.className = 'status-badge s-green';
+  } else if (vendas >= alvo) {
+    st.textContent = 'No ritmo — faltam ' + faltam + ' vendas'; st.className = 'status-badge s-green';
+  } else {
+    st.textContent = 'Atrasado — faltam ' + faltam + ' vendas'; st.className = 'status-badge s-red';
+  }
+
+  const cpWrap = document.getElementById('d-checkpoints');
+  cpWrap.innerHTML = '';
+  checkpoints.forEach((c, i) => {
+    const cpD0 = d0(c.data);
+    const passou = cpD0 <= hojeD0;
+    const ehHoje = cpD0.getTime() === hojeD0.getTime();
+    const anterior = i > 0 ? d0(checkpoints[i-1].data) : null;
+    const isCurrent = !passou && (i === 0 || (anterior && anterior <= hojeD0));
+    const done = passou && vendas >= c.valor;
+    const atrasado = passou && !done && !ehHoje;
+
+    let cl = 'cp';
+    if (done) cl = 'cp done';
+    else if (atrasado) cl = 'cp atrasado';
+    else if (isCurrent || ehHoje) cl = 'cp current';
+
+    const dateStr = c.data.toLocaleDateString('pt-BR', { day:'numeric', month:'short' });
+    let tag = '';
+    if (done) tag = '<span class="cp-tag tag-done">✓ feito</span>';
+    else if (ehHoje) tag = '<span class="cp-tag tag-hoje">hoje</span>';
+    else if (isCurrent) tag = '<span class="cp-tag tag-atual">atual</span>';
+    else if (atrasado) tag = '<span class="cp-tag tag-atrasado">atrasado</span>';
+
+    cpWrap.innerHTML += `<div class="${cl}">
+      <span class="cp-label">${c.pct}% — ${dateStr}</span>
+      <div class="cp-right"><span class="cp-val">${c.valor} vendas</span>${tag}</div>
+    </div>`;
+  });
+
+  const todayKey = 'vendas_hoje_' + hoje.toDateString();
+  const hj = parseInt(localStorage.getItem(todayKey) || '0');
+  document.getElementById('d-streak').textContent = hj + (hj === 1 ? ' venda hoje' : ' vendas hoje');
+}
+
+async function login() {
+  const email = document.getElementById('l-email').value;
+  const senha = document.getElementById('l-senha').value;
+  const err = document.getElementById('l-err');
+  err.style.display = 'none';
+  if (!email || !senha) { err.textContent = 'Preencha todos os campos.'; err.style.display = 'block'; return; }
+  showLoading();
+  try {
+    const res = await fetch(API, { method:'POST', body: JSON.stringify({ action:'login', email, senha }) });
+    const data = await res.json();
+    if (!data.success) { hideLoading(); err.textContent = 'Email ou senha inválidos.'; err.style.display = 'block'; return; }
+    user = data.user;
+    const r2 = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) });
+    const d2 = await r2.json();
+    renderDash(d2.total);
+    go('s-dash');
+  } catch(e) { err.textContent = 'Erro de conexão.'; err.style.display = 'block'; }
+  hideLoading();
+}
+
+async function register() {
+  const nome = document.getElementById('c-nome').value;
+  const email = document.getElementById('c-email').value;
+  const senha = document.getElementById('c-senha').value;
+  const err = document.getElementById('c-err');
+  err.style.display = 'none';
+  if (!nome || !email || !senha) { err.textContent = 'Preencha todos os campos.'; err.style.display = 'block'; return; }
+  showLoading();
+  try {
+    await fetch(API, { method:'POST', body: JSON.stringify({ action:'register', nome, email, senha }) });
+    toast('Conta criada! Faça login.');
+    go('s-login');
+  } catch(e) { err.textContent = 'Erro ao criar conta.'; err.style.display = 'block'; }
+  hideLoading();
+}
+
+async function addVenda() {
+  const btn = document.getElementById('add-btn');
+  btn.disabled = true; btn.textContent = 'Registrando...';
+  try {
+    await fetch(API, { method:'POST', body: JSON.stringify({ action:'saveVenda', userId: user.id }) });
+    const r2 = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) });
+    const d2 = await r2.json();
+    const key = 'vendas_hoje_' + new Date().toDateString();
+    localStorage.setItem(key, String(parseInt(localStorage.getItem(key) || '0') + 1));
+    renderDash(d2.total);
+    toast('Venda registrada!');
+  } catch(e) { toast('Erro ao registrar.'); }
+  btn.disabled = false; btn.textContent = '+ Registrar venda';
+}
+
+function logout() { user = null; go('s-inicio'); }
+</script>
 </body>
 </html>
