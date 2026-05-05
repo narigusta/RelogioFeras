@@ -1124,6 +1124,17 @@ function renderDash(vendas) {
   document.getElementById('d-hoje-val').textContent = hj;
 }
 
+// ── SESSÃO PERSISTENTE ──────────────────────────────
+function saveSession(userData) {
+  localStorage.setItem('sm_session', JSON.stringify(userData));
+}
+function clearSession() {
+  localStorage.removeItem('sm_session');
+}
+function loadSession() {
+  try { return JSON.parse(localStorage.getItem('sm_session')); } catch { return null; }
+}
+
 async function login() {
   const email = document.getElementById('l-email').value;
   const senha = document.getElementById('l-senha').value;
@@ -1136,6 +1147,7 @@ async function login() {
     const data = await res.json();
     if (!data.success) { hideLoading(); err.textContent = 'Email ou senha inválidos.'; err.style.display = 'block'; return; }
     user = data.user;
+    saveSession(user); // 💾 salva sessão
     const r2 = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) });
     const d2 = await r2.json();
     renderDash(d2.total);
@@ -1177,7 +1189,30 @@ async function addVenda() {
   btn.disabled = false; btn.textContent = '+ Registrar venda';
 }
 
-function logout() { user = null; go('s-inicio'); }
+function logout() {
+  user = null;
+  clearSession(); // 🗑️ limpa sessão
+  go('s-inicio');
+}
+
+// ── RESTAURAR SESSÃO AO CARREGAR ─────────────────────
+(async () => {
+  const saved = loadSession();
+  if (!saved) return; // sem sessão, fica na tela inicial
+  showLoading();
+  try {
+    user = saved;
+    const r = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) });
+    const d = await r.json();
+    renderDash(d.total);
+    addActivity('Sessão restaurada para <strong>' + user.nome.split(' ')[0] + '</strong>');
+    go('s-dash');
+  } catch(e) {
+    // Se der erro de rede, limpa sessão e volta para login
+    clearSession();
+  }
+  hideLoading();
+})();
 </script>
 </body>
 </html>
