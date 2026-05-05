@@ -1100,6 +1100,19 @@ function loadSession() {
   try { return JSON.parse(localStorage.getItem('sm_session')); } catch { return null; }
 }
 
+// ── FETCH CENTRALIZADO (lida com redirect do Apps Script) ──
+async function apiFetch(payload) {
+  const res = await fetch(API, {
+    method: 'POST',
+    redirect: 'follow',
+    body: JSON.stringify(payload),
+  });
+  const text = await res.text();
+  // Apps Script às vezes envolve o JSON em callback ou retorna HTML em erro
+  const clean = text.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
+  return JSON.parse(clean);
+}
+
 async function login() {
   const email = document.getElementById('l-email').value;
   const senha = document.getElementById('l-senha').value;
@@ -1108,15 +1121,12 @@ async function login() {
   if (!email || !senha) { err.textContent = 'Preencha todos os campos.'; err.style.display = 'block'; return; }
   showLoading();
   try {
-    const res = await fetch(API, { method:'POST', body: JSON.stringify({ action:'login', email, senha }) });
-    const data = await res.json();
+    const data = await apiFetch({ action:'login', email, senha });
     if (!data.success) { hideLoading(); err.textContent = 'Email ou senha inválidos.'; err.style.display = 'block'; return; }
     user = data.user;
-    saveSession(user); // 💾 salva sessão
-    const r2 = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) });
-    const d2 = await r2.json();
+    saveSession(user);
+    const d2 = await apiFetch({ action:'getUserData', userId: user.id });
     renderDash(d2.total);
-    addActivity('<strong>' + user.nome.split(' ')[0] + '</strong> entrou no painel');
     go('s-dash');
   } catch(e) { err.textContent = 'Erro de conexão.'; err.style.display = 'block'; }
   hideLoading();
@@ -1131,7 +1141,7 @@ async function register() {
   if (!nome || !email || !senha) { err.textContent = 'Preencha todos os campos.'; err.style.display = 'block'; return; }
   showLoading();
   try {
-    await fetch(API, { method:'POST', body: JSON.stringify({ action:'register', nome, email, senha }) });
+    await apiFetch({ action:'register', nome, email, senha });
     toast('Conta criada! Faça login.');
     go('s-login');
   } catch(e) { err.textContent = 'Erro ao criar conta.'; err.style.display = 'block'; }
@@ -1142,13 +1152,11 @@ async function addVenda() {
   const btn = document.getElementById('add-btn');
   btn.disabled = true; btn.textContent = 'Registrando...';
   try {
-    await fetch(API, { method:'POST', body: JSON.stringify({ action:'saveVenda', userId: user.id }) });
-    const r2 = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) });
-    const d2 = await r2.json();
+    await apiFetch({ action:'saveVenda', userId: user.id });
+    const d2 = await apiFetch({ action:'getUserData', userId: user.id });
     const key = 'vendas_hoje_' + new Date().toDateString();
     localStorage.setItem(key, String(parseInt(localStorage.getItem(key) || '0') + 1));
     renderDash(d2.total);
-    addActivity('Nova venda registrada por <strong>' + user.nome.split(' ')[0] + '</strong>');
     toast('Venda registrada! 🎉');
   } catch(e) { toast('Erro ao registrar.'); }
   btn.disabled = false; btn.textContent = '+ Registrar venda';
@@ -1156,24 +1164,21 @@ async function addVenda() {
 
 function logout() {
   user = null;
-  clearSession(); // 🗑️ limpa sessão
+  clearSession();
   go('s-inicio');
 }
 
 // ── RESTAURAR SESSÃO AO CARREGAR ─────────────────────
 (async () => {
   const saved = loadSession();
-  if (!saved) return; // sem sessão, fica na tela inicial
+  if (!saved) return;
   showLoading();
   try {
     user = saved;
-    const r = await fetch(API, { method:'POST', body: JSON.stringify({ action:'getUserData', userId: user.id }) });
-    const d = await r.json();
+    const d = await apiFetch({ action:'getUserData', userId: user.id });
     renderDash(d.total);
-    addActivity('Sessão restaurada para <strong>' + user.nome.split(' ')[0] + '</strong>');
     go('s-dash');
   } catch(e) {
-    // Se der erro de rede, limpa sessão e volta para login
     clearSession();
   }
   hideLoading();
